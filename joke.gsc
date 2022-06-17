@@ -34,10 +34,10 @@ OnPlayerConnect()
 
     if (level.TESTING)
     {
+        level thread DisplayBlocker();
+
         if (level.script == "zm_nuked")
             level thread MannequinCounter();
-        level thread DisplayBlocker();
-        level thread SndBlocker();  
     }
 }
 
@@ -316,6 +316,7 @@ ZoneHud()
     while (true)
     {
         zone = self get_current_zone();
+
         if(prev_zone != zone)
         {
             prev_zone = zone;
@@ -327,7 +328,11 @@ ZoneHud()
             zone_hud settext(zone);
 
             zone_hud fadeovertime(0.2);
-            zone_hud.alpha = 1;
+            zone_hud.alpha = 0.75;
+            wait 1;
+
+            zone_hud fadeovertime(0.2);
+            zone_hud.alpha = 0;
             wait 0.2;
         }
         wait 0.05;
@@ -339,18 +344,17 @@ MannequinCounter()
     self endon("disconnect");
     level endon("end_game");
 
-    timer_hud = createserverfontstring("hudsmall" , 1.6);
-	timer_hud setPoint("TOPLEFT", "TOPLEFT", 0, 0);					
+    timer_hud = createserverfontstring("hudsmall" , 1.4);
+	timer_hud setPoint("TOPLEFT", "TOPLEFT", 0, 20);					
 	timer_hud.alpha = 1;
-	timer_hud.color = (0.6, 0.8, 1);
+	timer_hud.color = (1, 0.6, 0.2);
 	timer_hud.hidewheninmenu = 1;
+    hud_blocker.label = &"Remaining mannequins: ";
 
     while (True)
     {
 	    timer_hud setValue(level.mannequin_count);
         wait 0.05;
-        if (level.mannequin_count == 0)
-            break;
     }
 }
 
@@ -360,7 +364,7 @@ DisplayBlocker()
     level endon("end_game");
 
     hud_blocker = createserverfontstring("hudsmall" , 1.4);
-	hud_blocker setPoint("TOPLEFT", "TOPLEFT", 0, 15);					
+	hud_blocker setPoint("TOPLEFT", "TOPLEFT", 0, 0);					
 	hud_blocker.alpha = 1;
 	hud_blocker.color = (1, 0.6, 0.2);
 	hud_blocker.hidewheninmenu = 1;
@@ -369,25 +373,6 @@ DisplayBlocker()
     while (true)
     {
         hud_blocker setValue(level.music_override);
-        wait 0.05;
-    }
-}
-
-SndBlocker()
-{
-    self endon("disconnect");
-    level endon("end_game");
-
-    hud_snd_blocker = createserverfontstring("hudsmall" , 1.4);
-	hud_snd_blocker setPoint("TOPLEFT", "TOPLEFT", 0, 35);					
-	hud_snd_blocker.alpha = 1;
-	hud_snd_blocker.color = (1, 0.6, 0.2);
-	hud_snd_blocker.hidewheninmenu = 1;
-    hud_snd_blocker.label = &"sndroundwait: ";
-
-    while (true)
-    {
-        hud_snd_blocker setValue(level.sndroundwait);
         wait 0.05;
     }
 }
