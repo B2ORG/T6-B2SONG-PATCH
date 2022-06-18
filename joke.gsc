@@ -16,7 +16,7 @@
 init()
 {
     level thread OnPlayerConnect();
-    level.TESTING = true;
+    level.TESTING = false;
 }
 
 OnPlayerConnect()
@@ -71,8 +71,8 @@ GetTimeDetailed(game_start)
 		miliseconds = int( miliseconds * 1000 ) % ( 1000 * 1000 );
 		miliseconds = miliseconds * 0.001; 
 
-        iPrintLn("miliseconds: " + miliseconds);
-        iPrintLn("seconds: " + seconds);
+        // iPrintLn("miliseconds: " + miliseconds);
+        // iPrintLn("seconds: " + seconds);
 
 		if( seconds > 59 )
 		{
@@ -80,12 +80,14 @@ GetTimeDetailed(game_start)
 			seconds = int( seconds * 1000 ) % ( 60 * 1000 );
 			seconds = seconds * 0.001; 	
 
-            iPrintLn("minutes: " + minutes);
+            // iPrintLn("minutes: " + minutes);
 		}
 	}
 
     minutes = int( minutes );
-	if( minutes < 10 )
+    if (minutes == 0)
+        minutes = "00";
+	else if( minutes < 10 )
 		minutes = "0" + minutes; 
 
 	seconds = Int( seconds ); 
@@ -218,7 +220,7 @@ Meteor()
     {
         if (level.meteor_counter == 3)
         {
-            iPrintLn("meteor_activated");
+            // iPrintLn("meteor_activated");
             level notify ("meteor_activated");
             break;
         }
@@ -235,7 +237,7 @@ NuketownWatcher()
     {
         if (level.mannequin_count <= 0)
         {
-            iPrintLn("cominghome_activated");
+            // iPrintLn("cominghome_activated");
             level notify ("cominghome_activated");
             break;
         }
@@ -248,7 +250,7 @@ ReDamned()
     level waittill("magic_door_power_up_grabbed");
     if (level.population_count == 15)
     {
-        iPrintLn("redamned_activated");
+        // iPrintLn("redamned_activated");
         level notify ("redamned_activated");
     }
 }
@@ -269,19 +271,19 @@ OriginsWatcher()
     {
         if (level.meteor_counter == 3 && !archengel_checked)
         {
-            iPrintLn("archengel_activated");
+            // iPrintLn("archengel_activated");
             level notify ("archengel_activated");
             archengel_checked = true;
         }
         else if (level.snd115count == 3 && !aether_checked)
         {
-            iPrintLn("aether_activated");
+            // iPrintLn("aether_activated");
             level notify ("aether_activated");
             aether_checked = true;
         }
         else if (level.found_ee_radio_count == 3 && !shepards_checked)
         {
-            iPrintLn("shepards_activated");
+            // iPrintLn("shepards_activated");
             level notify ("shepards_activated");
             shepards_checked = true;
         }
