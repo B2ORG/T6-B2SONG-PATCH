@@ -1,8 +1,6 @@
 #include maps/mp/gametypes_zm/_hud_util;
 #include maps/mp/zombies/_zm_utility;
 #include common_scripts/utility;
-#include maps/mp/_utility;
-#include maps/mp/animscripts/zm_utility;
 #include maps/mp/zm_transit;
 #include maps/mp/zm_nuked_amb;
 #include maps/mp/zm_highrise_amb;
@@ -11,7 +9,6 @@
 #include maps/mp/zm_buried_amb;
 #include maps/mp/zm_tomb_amb;
 #include maps/mp/zm_tomb_ee_side;
-#include maps/mp/gametypes_zm/_globallogic_score;
 
 init()
 {
@@ -24,12 +21,13 @@ OnPlayerConnect()
     level thread OnPlayerJoined();
 
 	level waittill("initial_players_connected");
-    iPrintLn("Joke v1");
+    iPrintLn("Joke v2");
     SetDvars();
 
     flag_wait("initial_blackscreen_passed");
     level thread TimerMain();
-    level thread SongSplits();
+    level thread GenerateSongSplit();
+    level thread SongWatcher();
     level thread PapSplits();
 
     if (level.TESTING)
@@ -45,24 +43,144 @@ OnPlayerJoined()
 {
     for (;;)
     {
-	    level waittill("connecting", player );	
+	    level waittill("connecting", player );
+
         if (level.TESTING)
-        {
             player thread ZoneHud();
-        }
     }
 }
 
 SetDvars()
 {
+    // Console values according to Plutonium
     setdvar("player_strafespeedscale", 1);
-    setdvar("player_backspeedscale", 0.9);
+    setdvar("player_backspeedscale", 0.85);
 }
 
-GetTimeDetailed(game_start)
+TimerMain()
+{
+    self endon("disconnect");
+    level endon("end_game");
+
+    level.songsr_start = int(gettime());
+
+    timer_hud = createserverfontstring("hudsmall" , 1.6);
+	timer_hud setPoint("TOPRIGHT", "TOPRIGHT", 0, 0);					
+	timer_hud.alpha = 1;
+	timer_hud.color = (1, 0.8, 1);
+	timer_hud.hidewheninmenu = 1;
+
+	timer_hud setTimerUp(0);
+}
+
+GenerateSongSplit()
+{
+    level.playing_songs = 0;
+    songs = GetMapSongs();
+
+    foreach(song in songs)
+        level thread SongSplit(song.title, song.trigger);
+}
+
+SongSplit(title, trigger)
+{
+    self endon("disconnect");
+    level endon("end_game");
+
+    // y_offset = 125 + (25 * songs);
+
+    split_hud = createserverfontstring("hudsmall" , 1.3);
+	split_hud setPoint("TOPRIGHT", "TOPRIGHT", 0, 150);					
+	split_hud.alpha = 0;
+	split_hud.color = (0.6, 0.8, 1);
+	split_hud.hidewheninmenu = 1;
+
+    level waittill (trigger);
+    sr_timestamp = GetTimeDetailed(level.songsr_start);
+    level.playing_songs += 1;
+    y_offset = 125 + (25 * level.playing_songs);
+	split_hud setPoint("TOPRIGHT", "TOPRIGHT", 0, y_offset);					
+    split_hud setText("" + title + ": " + sr_timestamp);
+	split_hud.alpha = 1;
+}
+
+GetMapSongs(map)
+{
+    if (!isdefined(map))
+        map = level.script;
+
+    song = array();
+
+    spec_title = GetSpecific(map, "title");
+    spec_trigger = GetSpecific(map, "trigger");
+    if (spec_title.size != spec_trigger.size)
+        return;
+
+    for (i = 0; i < spec_title.size; i++)
+    {
+        songs = spawnStruct();
+        songs.title = spec_title[i];
+        songs.trigger = spec_trigger[i];
+        song[song.size] = songs;
+    }
+
+    return song;
+}
+
+GetSpecific(map, type)
+{
+    if (map == "zm_transit")
+    {
+        if (type == "title")
+            return array("Carrion");
+        else if (type == "trigger")
+            return array("meteor_activated");
+    }
+    else if (map == "zm_nuked")
+    {
+        if (type == "title")
+            return array("Samantha's Lullaby", "Coming Home", "Re-Damned");
+        else if (type == "trigger")
+            return array("meteor_activated", "cominghome_activated", "redamned_activated");
+    }
+    else if (map == "zm_highrise")
+    {
+        if (type == "title")
+            return array("We All Fall Down");
+        else if (type == "trigger")
+            return array("meteor_activated");
+    }
+    else if (map == "zm_prison")
+    {
+        if (type == "title")
+            return array("Where Are We Going", "Rusty Cage");
+        else if (type == "trigger")
+            return array("meteor_activated", "johnycash_activated");
+    }
+    else if (map == "zm_buried")
+    {
+        if (type == "title")
+            return array("Always Running");
+        else if (type == "trigger")
+            return array("meteor_activated");
+    }
+    else if (map == "zm_tomb")
+    {
+        if (type == "title")
+            return array("Archangel", "Aether", "Shepherd of Fire");
+        else if (type == "trigger")
+            return array("archengel_activated", "aether_activated", "shepards_activated");
+    }
+    return array();
+}
+
+GetTimeDetailed(start_time)
 {
     current_time = int(gettime());
-    miliseconds = current_time - game_start;
+    
+    miliseconds = current_time - start_time;
+    minutes = 0;
+    seconds = 0;
 
 	if( miliseconds > 999 )
 	{
@@ -84,112 +202,25 @@ GetTimeDetailed(game_start)
 		}
 	}
 
-    minutes = int( minutes );
+    minutes = Int(minutes);
     if (minutes == 0)
         minutes = "00";
-	else if( minutes < 10 )
+	else if(minutes < 10)
 		minutes = "0" + minutes; 
 
-	seconds = Int( seconds ); 
-	if( seconds < 10 )
+	seconds = Int(seconds); 
+    if (seconds == 0)
+        seconds = "00";
+	else if(seconds < 10)
 		seconds = "0" + seconds; 
 
+	miliseconds = Int(miliseconds); 
+	if( miliseconds == 0 )
+		miliseconds = "000";
+	else if( miliseconds < 100 )
+		miliseconds = "" + miliseconds + "0";
+
 	return "" + minutes + ":" + seconds + "." + miliseconds; 
-}
-
-TimerMain()
-{
-    self endon("disconnect");
-    level endon("end_game");
-
-    timer_hud = createserverfontstring("hudsmall" , 1.6);
-	timer_hud setPoint("TOPRIGHT", "TOPRIGHT", 0, 0);					
-	timer_hud.alpha = 1;
-	timer_hud.color = (1, 0.8, 1);
-	timer_hud.hidewheninmenu = 1;
-
-	timer_hud setTimerUp(0);
-}
-
-SongSplit1(a_label, trigger, beginning)
-{
-    self endon("disconnect");
-    level endon("end_game");
-
-    split_time1 = createserverfontstring("hudsmall" , 1.3);
-	split_time1 setPoint("TOPRIGHT", "TOPRIGHT", 0, 150);					
-	split_time1.alpha = 0;
-	split_time1.color = (0.6, 0.8, 1);
-	split_time1.hidewheninmenu = 1;
-    // split_time1.label = &"" + a_label;
-
-    level waittill (trigger);
-    split_time1 setText("" + a_label + GetTimeDetailed(beginning));
-	split_time1.alpha = 1;
-}
-
-SongSplit2(a_label, trigger, beginning)
-{
-    self endon("disconnect");
-    level endon("end_game");
-
-    split_time2 = createserverfontstring("hudsmall" , 1.3);
-	split_time2 setPoint("TOPRIGHT", "TOPRIGHT", 0, 175);					
-	split_time2.alpha = 0;
-	split_time2.color = (0.6, 0.8, 1);
-	split_time2.hidewheninmenu = 1;
-    // split_time2.label = &"" + a_label;
-
-    level waittill (trigger);
-    split_time2 setText("" + a_label + GetTimeDetailed(beginning));
-	split_time2.alpha = 1;
-}
-
-SongSplit3(a_label, trigger, beginning)
-{
-    self endon("disconnect");
-    level endon("end_game");
-
-    split_time3 = createserverfontstring("hudsmall" , 1.3);
-	split_time3 setPoint("TOPRIGHT", "TOPRIGHT", 0, 200);					
-	split_time3.alpha = 0;
-	split_time3.color = (0.6, 0.8, 1);
-	split_time3.hidewheninmenu = 1;
-    // split_time3.label = &"" + a_label;
-
-    level waittill (trigger);
-    split_time3 setText("" + a_label + GetTimeDetailed(beginning));
-	split_time3.alpha = 1;
-}
-
-SongSplits()
-{
-    timestamp_init = int(gettime());
-    level thread SongWatcher();
-
-    if (level.script == "zm_transit")
-        level thread SongSplit1("Carrion: ", "meteor_activated", timestamp_init);
-    else if (level.script == "zm_nuked")
-    {
-        level thread SongSplit1("Samantha's Lullaby: ", "meteor_activated", timestamp_init);
-        level thread SongSplit2("Coming Home: ", "cominghome_activated", timestamp_init);
-        level thread SongSplit3("Re-Damned: ", "redamned_activated", timestamp_init);
-    }
-    else if (level.script == "zm_highrise")
-        level thread SongSplit1("We All Fall Down: ", "meteor_activated", timestamp_init);
-    else if (level.script == "zm_prison")
-    {
-        level thread SongSplit1("Where Are We Going: ", "meteor_activated", timestamp_init);
-        level thread SongSplit2("Rusty Cage: ", "johnycash_activated", timestamp_init);
-    }
-    else if (level.script == "zm_buried")
-        level thread SongSplit1("Always Running: ", "meteor_activated");
-    else if (level.script == "zm_tomb")
-    {
-        level thread SongSplit1("Archangel: ", "archengel_activated", timestamp_init);
-        level thread SongSplit2("Aether: ", "aether_activated", timestamp_init);
-        level thread SongSplit3("Shepherd of Fire: ", "shepards_activated", timestamp_init);
-    }
 }
 
 SongWatcher()
@@ -258,7 +289,7 @@ ReDamned()
 RustyCage()
 {
     level waittill ("nixie_" + 935);
-    iPrintLn("johnycash_activated");
+    // iPrintLn("johnycash_activated");
     level notify ("johnycash_activated");
 }
 
