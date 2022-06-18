@@ -1,8 +1,6 @@
 #include maps/mp/gametypes_zm/_hud_util;
 #include maps/mp/zombies/_zm_utility;
 #include common_scripts/utility;
-#include maps/mp/_utility;
-#include maps/mp/animscripts/zm_utility;
 #include maps/mp/zm_transit;
 #include maps/mp/zm_nuked_amb;
 #include maps/mp/zm_highrise_amb;
@@ -11,7 +9,6 @@
 #include maps/mp/zm_buried_amb;
 #include maps/mp/zm_tomb_amb;
 #include maps/mp/zm_tomb_ee_side;
-#include maps/mp/gametypes_zm/_globallogic_score;
 
 init()
 {
@@ -24,7 +21,7 @@ OnPlayerConnect()
     level thread OnPlayerJoined();
 
 	level waittill("initial_players_connected");
-    iPrintLn("Joke v1");
+    iPrintLn("Joke v2");
     SetDvars();
 
     flag_wait("initial_blackscreen_passed");
@@ -46,18 +43,18 @@ OnPlayerJoined()
 {
     for (;;)
     {
-	    level waittill("connecting", player );	
+	    level waittill("connecting", player );
+
         if (level.TESTING)
-        {
             player thread ZoneHud();
-        }
     }
 }
 
 SetDvars()
 {
+    // Console values according to Plutonium
     setdvar("player_strafespeedscale", 1);
-    setdvar("player_backspeedscale", 0.9);
+    setdvar("player_backspeedscale", 0.85);
 }
 
 TimerMain()
@@ -78,36 +75,32 @@ TimerMain()
 
 GenerateSongSplit()
 {
-    number_of_songs = 0;
+    level.playing_songs = 0;
     songs = GetMapSongs();
 
     foreach(song in songs)
-    {
-        number_of_songs += 1;
-        level thread SongSplit(song.title, song.trigger, number_of_songs);
-
-        // iPrintLn("number: " + number_of_songs + " / " + song.title + " / " + song.trigger);
-    }
+        level thread SongSplit(song.title, song.trigger);
 }
 
-SongSplit(title, trigger, songs)
+SongSplit(title, trigger)
 {
     self endon("disconnect");
     level endon("end_game");
 
-    y_offset = 125 + (25 * songs);
+    // y_offset = 125 + (25 * songs);
 
     split_hud = createserverfontstring("hudsmall" , 1.3);
-	split_hud setPoint("TOPRIGHT", "TOPRIGHT", 0, y_offset);					
+	split_hud setPoint("TOPRIGHT", "TOPRIGHT", 0, 150);					
 	split_hud.alpha = 0;
 	split_hud.color = (0.6, 0.8, 1);
 	split_hud.hidewheninmenu = 1;
 
     level waittill (trigger);
-    // triggers don't work :(
     sr_timestamp = GetTimeDetailed(level.songsr_start);
-    iPrintLn(sr_timestamp);
-    split_hud setText("" + title + sr_timestamp);
+    level.playing_songs += 1;
+    y_offset = 125 + (25 * level.playing_songs);
+	split_hud setPoint("TOPRIGHT", "TOPRIGHT", 0, y_offset);					
+    split_hud setText("" + title + ": " + sr_timestamp);
 	split_hud.alpha = 1;
 }
 
@@ -184,7 +177,10 @@ GetSpecific(map, type)
 GetTimeDetailed(start_time)
 {
     current_time = int(gettime());
+    
     miliseconds = current_time - start_time;
+    minutes = 0;
+    seconds = 0;
 
 	if( miliseconds > 999 )
 	{
@@ -206,13 +202,23 @@ GetTimeDetailed(start_time)
 		}
 	}
 
-    minutes = int( minutes );
-	if( minutes < 10 )
+    minutes = Int(minutes);
+    if (minutes == 0)
+        minutes = "00";
+	else if(minutes < 10)
 		minutes = "0" + minutes; 
 
-	seconds = Int( seconds ); 
-	if( seconds < 10 )
+	seconds = Int(seconds); 
+    if (seconds == 0)
+        seconds = "00";
+	else if(seconds < 10)
 		seconds = "0" + seconds; 
+
+	miliseconds = Int(miliseconds); 
+	if( miliseconds == 0 )
+		miliseconds = "000";
+	else if( miliseconds < 100 )
+		miliseconds = "" + miliseconds + "0";
 
 	return "" + minutes + ":" + seconds + "." + miliseconds; 
 }
