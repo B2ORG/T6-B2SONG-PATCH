@@ -218,7 +218,7 @@ GetTimeDetailed(start_time)
 	if( miliseconds == 0 )
 		miliseconds = "000";
 	else if( miliseconds < 100 )
-		miliseconds = "" + miliseconds + "0";
+		miliseconds = "0" + miliseconds;
 
 	return "" + minutes + ":" + seconds + "." + miliseconds; 
 }
