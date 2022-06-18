@@ -57,6 +57,19 @@ SetDvars()
     setdvar("player_backspeedscale", 0.85);
 }
 
+SetSplitColor()
+{
+    if (isdefined(level.TESTING))
+    {
+        if (level.TESTING)
+            return (1, 0.6, 0.6);
+        else
+            return (0.6, 0.8, 1);
+    }
+    else
+        return (1, 1, 1);
+}
+
 TimerMain()
 {
     self endon("disconnect");
@@ -92,7 +105,7 @@ SongSplit(title, trigger)
     split_hud = createserverfontstring("hudsmall" , 1.3);
 	split_hud setPoint("TOPRIGHT", "TOPRIGHT", 0, 150);					
 	split_hud.alpha = 0;
-	split_hud.color = (0.6, 0.8, 1);
+	split_hud.color = SetSplitColor();
 	split_hud.hidewheninmenu = 1;
 
     level waittill (trigger);
