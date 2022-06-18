@@ -16,7 +16,7 @@
 init()
 {
     level thread OnPlayerConnect();
-    level.TESTING = true;
+    level.TESTING = false;
 }
 
 OnPlayerConnect()
@@ -29,7 +29,8 @@ OnPlayerConnect()
 
     flag_wait("initial_blackscreen_passed");
     level thread TimerMain();
-    level thread SongSplits();
+    level thread GenerateSongSplit();
+    level thread SongWatcher();
     level thread PapSplits();
 
     if (level.TESTING)
@@ -59,10 +60,131 @@ SetDvars()
     setdvar("player_backspeedscale", 0.9);
 }
 
-GetTimeDetailed(game_start)
+TimerMain()
+{
+    self endon("disconnect");
+    level endon("end_game");
+
+    level.songsr_start = int(gettime());
+
+    timer_hud = createserverfontstring("hudsmall" , 1.6);
+	timer_hud setPoint("TOPRIGHT", "TOPRIGHT", 0, 0);					
+	timer_hud.alpha = 1;
+	timer_hud.color = (1, 0.8, 1);
+	timer_hud.hidewheninmenu = 1;
+
+	timer_hud setTimerUp(0);
+}
+
+GenerateSongSplit()
+{
+    number_of_songs = 0;
+    songs = GetMapSongs();
+
+    foreach(song in songs)
+    {
+        number_of_songs += 1;
+        level thread SongSplit(song.title, song.trigger, number_of_songs);
+
+        // iPrintLn("number: " + number_of_songs + " / " + song.title + " / " + song.trigger);
+    }
+}
+
+SongSplit(title, trigger, songs)
+{
+    self endon("disconnect");
+    level endon("end_game");
+
+    y_offset = 125 + (25 * songs);
+
+    split_hud = createserverfontstring("hudsmall" , 1.3);
+	split_hud setPoint("TOPRIGHT", "TOPRIGHT", 0, y_offset);					
+	split_hud.alpha = 0;
+	split_hud.color = (0.6, 0.8, 1);
+	split_hud.hidewheninmenu = 1;
+
+    level waittill (trigger);
+    // triggers don't work :(
+    sr_timestamp = GetTimeDetailed(level.songsr_start);
+    iPrintLn(sr_timestamp);
+    split_hud setText("" + title + sr_timestamp);
+	split_hud.alpha = 1;
+}
+
+GetMapSongs(map)
+{
+    if (!isdefined(map))
+        map = level.script;
+
+    song = array();
+
+    spec_title = GetSpecific(map, "title");
+    spec_trigger = GetSpecific(map, "trigger");
+    if (spec_title.size != spec_trigger.size)
+        return;
+
+    for (i = 0; i < spec_title.size; i++)
+    {
+        songs = spawnStruct();
+        songs.title = spec_title[i];
+        songs.trigger = spec_trigger[i];
+        song[song.size] = songs;
+    }
+
+    return song;
+}
+
+GetSpecific(map, type)
+{
+    if (map == "zm_transit")
+    {
+        if (type == "title")
+            return array("Carrion");
+        else if (type == "trigger")
+            return array("meteor_activated");
+    }
+    else if (map == "zm_nuked")
+    {
+        if (type == "title")
+            return array("Samantha's Lullaby", "Coming Home", "Re-Damned");
+        else if (type == "trigger")
+            return array("meteor_activated", "cominghome_activated", "redamned_activated");
+    }
+    else if (map == "zm_highrise")
+    {
+        if (type == "title")
+            return array("We All Fall Down");
+        else if (type == "trigger")
+            return array("meteor_activated");
+    }
+    else if (map == "zm_prison")
+    {
+        if (type == "title")
+            return array("Where Are We Going", "Rusty Cage");
+        else if (type == "trigger")
+            return array("meteor_activated", "johnycash_activated");
+    }
+    else if (map == "zm_buried")
+    {
+        if (type == "title")
+            return array("Always Running");
+        else if (type == "trigger")
+            return array("meteor_activated");
+    }
+    else if (map == "zm_tomb")
+    {
+        if (type == "title")
+            return array("Archangel", "Aether", "Shepherd of Fire");
+        else if (type == "trigger")
+            return array("archengel_activated", "aether_activated", "shepards_activated");
+    }
+    return array();
+}
+
+GetTimeDetailed(start_time)
 {
     current_time = int(gettime());
-    miliseconds = current_time - game_start;
+    miliseconds = current_time - start_time;
 
 	if( miliseconds > 999 )
 	{
@@ -71,8 +193,8 @@ GetTimeDetailed(game_start)
 		miliseconds = int( miliseconds * 1000 ) % ( 1000 * 1000 );
 		miliseconds = miliseconds * 0.001; 
 
-        iPrintLn("miliseconds: " + miliseconds);
-        iPrintLn("seconds: " + seconds);
+        // iPrintLn("miliseconds: " + miliseconds);
+        // iPrintLn("seconds: " + seconds);
 
 		if( seconds > 59 )
 		{
@@ -80,7 +202,7 @@ GetTimeDetailed(game_start)
 			seconds = int( seconds * 1000 ) % ( 60 * 1000 );
 			seconds = seconds * 0.001; 	
 
-            iPrintLn("minutes: " + minutes);
+            // iPrintLn("minutes: " + minutes);
 		}
 	}
 
@@ -93,101 +215,6 @@ GetTimeDetailed(game_start)
 		seconds = "0" + seconds; 
 
 	return "" + minutes + ":" + seconds + "." + miliseconds; 
-}
-
-TimerMain()
-{
-    self endon("disconnect");
-    level endon("end_game");
-
-    timer_hud = createserverfontstring("hudsmall" , 1.6);
-	timer_hud setPoint("TOPRIGHT", "TOPRIGHT", 0, 0);					
-	timer_hud.alpha = 1;
-	timer_hud.color = (1, 0.8, 1);
-	timer_hud.hidewheninmenu = 1;
-
-	timer_hud setTimerUp(0);
-}
-
-SongSplit1(a_label, trigger, beginning)
-{
-    self endon("disconnect");
-    level endon("end_game");
-
-    split_time1 = createserverfontstring("hudsmall" , 1.3);
-	split_time1 setPoint("TOPRIGHT", "TOPRIGHT", 0, 150);					
-	split_time1.alpha = 0;
-	split_time1.color = (0.6, 0.8, 1);
-	split_time1.hidewheninmenu = 1;
-    // split_time1.label = &"" + a_label;
-
-    level waittill (trigger);
-    split_time1 setText("" + a_label + GetTimeDetailed(beginning));
-	split_time1.alpha = 1;
-}
-
-SongSplit2(a_label, trigger, beginning)
-{
-    self endon("disconnect");
-    level endon("end_game");
-
-    split_time2 = createserverfontstring("hudsmall" , 1.3);
-	split_time2 setPoint("TOPRIGHT", "TOPRIGHT", 0, 175);					
-	split_time2.alpha = 0;
-	split_time2.color = (0.6, 0.8, 1);
-	split_time2.hidewheninmenu = 1;
-    // split_time2.label = &"" + a_label;
-
-    level waittill (trigger);
-    split_time2 setText("" + a_label + GetTimeDetailed(beginning));
-	split_time2.alpha = 1;
-}
-
-SongSplit3(a_label, trigger, beginning)
-{
-    self endon("disconnect");
-    level endon("end_game");
-
-    split_time3 = createserverfontstring("hudsmall" , 1.3);
-	split_time3 setPoint("TOPRIGHT", "TOPRIGHT", 0, 200);					
-	split_time3.alpha = 0;
-	split_time3.color = (0.6, 0.8, 1);
-	split_time3.hidewheninmenu = 1;
-    // split_time3.label = &"" + a_label;
-
-    level waittill (trigger);
-    split_time3 setText("" + a_label + GetTimeDetailed(beginning));
-	split_time3.alpha = 1;
-}
-
-SongSplits()
-{
-    timestamp_init = int(gettime());
-    level thread SongWatcher();
-
-    if (level.script == "zm_transit")
-        level thread SongSplit1("Carrion: ", "meteor_activated", timestamp_init);
-    else if (level.script == "zm_nuked")
-    {
-        level thread SongSplit1("Samantha's Lullaby: ", "meteor_activated", timestamp_init);
-        level thread SongSplit2("Coming Home: ", "cominghome_activated", timestamp_init);
-        level thread SongSplit3("Re-Damned: ", "redamned_activated", timestamp_init);
-    }
-    else if (level.script == "zm_highrise")
-        level thread SongSplit1("We All Fall Down: ", "meteor_activated", timestamp_init);
-    else if (level.script == "zm_prison")
-    {
-        level thread SongSplit1("Where Are We Going: ", "meteor_activated", timestamp_init);
-        level thread SongSplit2("Rusty Cage: ", "johnycash_activated", timestamp_init);
-    }
-    else if (level.script == "zm_buried")
-        level thread SongSplit1("Always Running: ", "meteor_activated");
-    else if (level.script == "zm_tomb")
-    {
-        level thread SongSplit1("Archangel: ", "archengel_activated", timestamp_init);
-        level thread SongSplit2("Aether: ", "aether_activated", timestamp_init);
-        level thread SongSplit3("Shepherd of Fire: ", "shepards_activated", timestamp_init);
-    }
 }
 
 SongWatcher()
@@ -218,7 +245,7 @@ Meteor()
     {
         if (level.meteor_counter == 3)
         {
-            iPrintLn("meteor_activated");
+            // iPrintLn("meteor_activated");
             level notify ("meteor_activated");
             break;
         }
@@ -235,7 +262,7 @@ NuketownWatcher()
     {
         if (level.mannequin_count <= 0)
         {
-            iPrintLn("cominghome_activated");
+            // iPrintLn("cominghome_activated");
             level notify ("cominghome_activated");
             break;
         }
@@ -248,7 +275,7 @@ ReDamned()
     level waittill("magic_door_power_up_grabbed");
     if (level.population_count == 15)
     {
-        iPrintLn("redamned_activated");
+        // iPrintLn("redamned_activated");
         level notify ("redamned_activated");
     }
 }
@@ -256,7 +283,7 @@ ReDamned()
 RustyCage()
 {
     level waittill ("nixie_" + 935);
-    iPrintLn("johnycash_activated");
+    // iPrintLn("johnycash_activated");
     level notify ("johnycash_activated");
 }
 
@@ -269,19 +296,19 @@ OriginsWatcher()
     {
         if (level.meteor_counter == 3 && !archengel_checked)
         {
-            iPrintLn("archengel_activated");
+            // iPrintLn("archengel_activated");
             level notify ("archengel_activated");
             archengel_checked = true;
         }
         else if (level.snd115count == 3 && !aether_checked)
         {
-            iPrintLn("aether_activated");
+            // iPrintLn("aether_activated");
             level notify ("aether_activated");
             aether_checked = true;
         }
         else if (level.found_ee_radio_count == 3 && !shepards_checked)
         {
-            iPrintLn("shepards_activated");
+            // iPrintLn("shepards_activated");
             level notify ("shepards_activated");
             shepards_checked = true;
         }
