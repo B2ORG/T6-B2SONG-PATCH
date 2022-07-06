@@ -454,3 +454,96 @@ DisplayBlocker()
         wait 0.05;
     }
 }
+
+AttemptsMain()
+{
+    attempt_hud = createserverfontstring("hudsmall" , 1.5);
+    attempt_hud setPoint("TOPRIGHT", "TOPRIGHT", 0, 20);
+    attempt_hud.alpha = 1;
+    attempt_hud.color = (1, 0.8, 1);
+    attempt_hud.hidewheninmenu = 1;
+    attempt_hud.label = "Attempts: ";
+    attempt_hud setValue(getDvarInt("song_attempts"));
+    iPrintLn(getDvarInt("song_attempts"));
+
+    level waittill("disconnected");
+    setDvar("song_attempts", getDvarInt("song_attempts") + 1);
+    return;
+}
+
+ConditionCounter()
+{
+    self endon("disconnect");
+    level endon("end_game");
+
+    self thread ConditionTracker();
+
+    condition_hud = createserverfontstring("hudsmall" , 1.4);
+	condition_hud setPoint("TOPRIGHT", "TOPRIGHT", 0, 30);
+	condition_hud.alpha = 0;
+	condition_hud.color = (1, 0.6, 0.2);
+	condition_hud.hidewheninmenu = 1;
+    condition_hud.label = &"Remaining mannequins: ";
+
+    while (True)
+    {
+	    timer_hud setValue(level.mannequin_count);
+        wait 0.05;
+    }
+}
+
+ConditionTracker()
+{
+    self endon("disconnect");
+    level endon("end_game");
+
+    while (true)
+    {
+        level.current_count = array();
+
+        switch (level.script)
+        {
+            case "zm_transit":
+            case "zm_highrise":
+            case "zm_buried":
+                level.label_count = array("Teddy Bears");
+                break;
+            case "zm_nuked":
+                level.label_count = array("Teddy Bears", "Mannequinns", "Population");
+                break;
+            case "zm_prison":
+                level.label_count = array("Bottles");
+                break;
+            case "zm_tomb":
+                level.label_count = array("Meteors", "Plates", "Radios");
+                break;
+            default:
+                level.label_count = array("");
+        }
+
+        while (level.script == "zm_transit" || level.script == "zm_highrise" || level.script == "zm_buried" || level.script == "zm_prison")
+        {
+            level.current_count[0] = level.meteor_counter;
+            wait 0.05;
+        }
+
+        while (level.script == "zm_nuked")
+        {
+            level.current_count[0] = level.meteor_counter;
+            level.current_count[1] = level.mannequin_count;
+            level.current_count[2] = level.population_count;
+            wait 0.05;
+        }
+
+        while (level.script == "zm_tomb")
+        {
+            level.current_count[0] = level.meteor_counter;
+            level.current_count[1] = level.snd115count;
+            level.current_count[2] = level.found_ee_radio_count;
+            wait 0.05;
+        }
+
+        wait 0.05;
+    }
+
+}
