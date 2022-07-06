@@ -13,7 +13,8 @@
 init()
 {
     level thread OnPlayerConnect();
-    level.TESTING = false;
+    level.ACCESS_LEVEL = 0;
+    level.SONG_AUTO_TIMER_ACTIVE = true;
 }
 
 OnPlayerConnect()
@@ -21,16 +22,24 @@ OnPlayerConnect()
     level thread OnPlayerJoined();
 
 	level waittill("initial_players_connected");
-    iPrintLn("Joke v2");
+    iPrintLn("^5SongSR Auto-Timer V3");
+    iPrintLn("Access level: " + GetAccessColor() + level.ACCESS_LEVEL);
     SetDvars();
 
     flag_wait("initial_blackscreen_passed");
+    level thread LevelDcWatcher();
     level thread TimerMain();
     level thread GenerateSongSplit();
     level thread SongWatcher();
-    level thread PapSplits();
+    // level thread PapSplits();
+    // level thread AttemptsMain();
 
-    if (level.TESTING)
+    if (level.ACESS_LEVEL >= 1)
+    {
+        // level thread ConditionCounter();
+    }
+
+    if (level.ACCESS_LEVEL >= 2)
     {
         level thread DisplayBlocker();
 
@@ -45,7 +54,7 @@ OnPlayerJoined()
     {
 	    level waittill("connecting", player );
 
-        if (level.TESTING)
+        if (level.ACCESS_LEVEL >= 1)
             player thread ZoneHud();
     }
 }
@@ -57,17 +66,40 @@ SetDvars()
     setdvar("player_backspeedscale", 0.85);
 }
 
-SetSplitColor()
+LevelDcWatcher()
 {
-    if (isdefined(level.TESTING))
+    level.players[0] waittill("disconnect");
+    level notify("disconnected");
+}
+
+GetAccessColor()
+{
+    if (isdefined(level.ACCESS_LEVEL))
     {
-        if (level.TESTING)
-            return (1, 0.6, 0.6);
-        else
-            return (0.6, 0.8, 1);
+        if (level.ACCESS_LEVEL == 0)
+            return "^2";   // Green
+        else if (level.ACCESS_LEVEL == 1)
+            return "^3";   // Yellow
+        else if (level.ACCESS_LEVEL == 2)
+            return "^1";   // Red
     }
     else
-        return (1, 1, 1);
+        return "";         // White
+}
+
+SetSplitColor()
+{
+    if (isdefined(level.ACCESS_LEVEL))
+    {
+        if (level.ACCESS_LEVEL == 0)
+            return (0.6, 0.8, 1);   // Blue
+        else if (level.ACCESS_LEVEL == 1)
+            return (0.6, 0.2, 1);   // Purple
+        else if (level.ACCESS_LEVEL == 2)
+            return (1, 0.6, 0.6);   // Red
+    }
+    else
+        return (1, 1, 1);           // White
 }
 
 TimerMain()
@@ -78,7 +110,7 @@ TimerMain()
     level.songsr_start = int(gettime());
 
     timer_hud = createserverfontstring("hudsmall" , 1.6);
-	timer_hud setPoint("TOPRIGHT", "TOPRIGHT", 0, 0);					
+	timer_hud setPoint("TOPRIGHT", "TOPRIGHT", 0, 0);
 	timer_hud.alpha = 1;
 	timer_hud.color = (1, 0.8, 1);
 	timer_hud.hidewheninmenu = 1;
@@ -166,9 +198,9 @@ GetSpecific(map, type)
     else if (map == "zm_prison")
     {
         if (type == "title")
-            return array("Where Are We Going", "Rusty Cage");
+            return array("Rusty Cage", "Where Are We Going");
         else if (type == "trigger")
-            return array("meteor_activated", "johnycash_activated");
+            return array("meteor_activated", "wherearewegoing_activated");
     }
     else if (map == "zm_buried")
     {
@@ -191,11 +223,11 @@ GetTimeDetailed(start_time)
 {
     current_time = int(gettime());
     
-    miliseconds = current_time - start_time;
+    miliseconds = (current_time - start_time) + 50; // +50 for rounding
     minutes = 0;
     seconds = 0;
 
-	if( miliseconds > 999 )
+	if( miliseconds > 995 )
 	{
 		seconds = int( miliseconds / 1000 );
 
@@ -233,7 +265,7 @@ GetTimeDetailed(start_time)
 	else if( miliseconds < 100 )
 		miliseconds = "0" + miliseconds;
 
-	return "" + minutes + ":" + seconds + "." + miliseconds; 
+	return "" + minutes + ":" + seconds + "." + getsubstr(miliseconds, 0, 1); 
 }
 
 SongWatcher()
@@ -303,7 +335,7 @@ RustyCage()
 {
     level waittill ("nixie_" + 935);
     // iPrintLn("johnycash_activated");
-    level notify ("johnycash_activated");
+    level notify ("wherearewegoing_activated");
 }
 
 OriginsWatcher()
