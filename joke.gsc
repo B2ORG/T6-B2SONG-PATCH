@@ -13,7 +13,8 @@
 init()
 {
     level thread OnPlayerConnect();
-    level.TESTING = false;
+    level.ACCESS_LEVEL = 0;
+    level.SONG_AUTO_TIMER_ACTIVE = true;
 }
 
 OnPlayerConnect()
@@ -21,16 +22,24 @@ OnPlayerConnect()
     level thread OnPlayerJoined();
 
 	level waittill("initial_players_connected");
-    iPrintLn("Joke v2");
+    iPrintLn("^5SongSR Auto-Timer V3");
+    iPrintLn("Access level: " + GetAccessColor() + level.ACCESS_LEVEL);
     SetDvars();
 
     flag_wait("initial_blackscreen_passed");
+    level thread LevelDcWatcher();
     level thread TimerMain();
     level thread GenerateSongSplit();
     level thread SongWatcher();
-    level thread PapSplits();
+    // level thread PapSplits();
+    // level thread AttemptsMain();
 
-    if (level.TESTING)
+    if (level.ACESS_LEVEL >= 1)
+    {
+        // level thread ConditionCounter();
+    }
+
+    if (level.ACCESS_LEVEL >= 2)
     {
         level thread DisplayBlocker();
 
@@ -45,7 +54,7 @@ OnPlayerJoined()
     {
 	    level waittill("connecting", player );
 
-        if (level.TESTING)
+        if (level.ACCESS_LEVEL >= 1)
             player thread ZoneHud();
     }
 }
@@ -57,17 +66,40 @@ SetDvars()
     setdvar("player_backspeedscale", 0.85);
 }
 
-SetSplitColor()
+LevelDcWatcher()
 {
-    if (isdefined(level.TESTING))
+    level.players[0] waittill("disconnect");
+    level notify("disconnected");
+}
+
+GetAccessColor()
+{
+    if (isdefined(level.ACCESS_LEVEL))
     {
-        if (level.TESTING)
-            return (1, 0.6, 0.6);
-        else
-            return (0.6, 0.8, 1);
+        if (level.ACCESS_LEVEL == 0)
+            return "^2";   // Green
+        else if (level.ACCESS_LEVEL == 1)
+            return "^3";   // Yellow
+        else if (level.ACCESS_LEVEL == 2)
+            return "^1";   // Red
     }
     else
-        return (1, 1, 1);
+        return "";         // White
+}
+
+SetSplitColor()
+{
+    if (isdefined(level.ACCESS_LEVEL))
+    {
+        if (level.ACCESS_LEVEL == 0)
+            return (0.6, 0.8, 1);   // Blue
+        else if (level.ACCESS_LEVEL == 1)
+            return (0.6, 0.2, 1);   // Purple
+        else if (level.ACCESS_LEVEL == 2)
+            return (1, 0.6, 0.6);   // Red
+    }
+    else
+        return (1, 1, 1);           // White
 }
 
 TimerMain()
@@ -78,12 +110,28 @@ TimerMain()
     level.songsr_start = int(gettime());
 
     timer_hud = createserverfontstring("hudsmall" , 1.6);
-	timer_hud setPoint("TOPRIGHT", "TOPRIGHT", 0, 0);					
+	timer_hud setPoint("TOPRIGHT", "TOPRIGHT", 0, 0);
 	timer_hud.alpha = 1;
 	timer_hud.color = (1, 0.8, 1);
 	timer_hud.hidewheninmenu = 1;
 
 	timer_hud setTimerUp(0);
+}
+
+AttemptsMain()
+{
+    attempt_hud = createserverfontstring("hudsmall" , 1.5);
+    attempt_hud setPoint("TOPRIGHT", "TOPRIGHT", 0, 20);
+    attempt_hud.alpha = 1;
+    attempt_hud.color = (1, 0.8, 1);
+    attempt_hud.hidewheninmenu = 1;
+    attempt_hud.label = "Attempts: ";
+    attempt_hud setValue(getDvarInt("song_attempts"));
+    iPrintLn(getDvarInt("song_attempts"));
+
+    level waittill("disconnected");
+    setDvar("song_attempts", getDvarInt("song_attempts") + 1);
+    return;
 }
 
 GenerateSongSplit()
@@ -166,9 +214,9 @@ GetSpecific(map, type)
     else if (map == "zm_prison")
     {
         if (type == "title")
-            return array("Where Are We Going", "Rusty Cage");
+            return array("Rusty Cage", "Where Are We Going");
         else if (type == "trigger")
-            return array("meteor_activated", "johnycash_activated");
+            return array("meteor_activated", "wherearewegoing_activated");
     }
     else if (map == "zm_buried")
     {
@@ -191,11 +239,11 @@ GetTimeDetailed(start_time)
 {
     current_time = int(gettime());
     
-    miliseconds = current_time - start_time;
+    miliseconds = (current_time - start_time) + 50; // +50 for rounding
     minutes = 0;
     seconds = 0;
 
-	if( miliseconds > 999 )
+	if( miliseconds > 995 )
 	{
 		seconds = int( miliseconds / 1000 );
 
@@ -233,7 +281,7 @@ GetTimeDetailed(start_time)
 	else if( miliseconds < 100 )
 		miliseconds = "0" + miliseconds;
 
-	return "" + minutes + ":" + seconds + "." + miliseconds; 
+	return "" + minutes + ":" + seconds + "." + getsubstr(miliseconds, 0, 1); 
 }
 
 SongWatcher()
@@ -303,7 +351,7 @@ RustyCage()
 {
     level waittill ("nixie_" + 935);
     // iPrintLn("johnycash_activated");
-    level notify ("johnycash_activated");
+    level notify ("wherearewegoing_activated");
 }
 
 OriginsWatcher()
@@ -334,6 +382,83 @@ OriginsWatcher()
 
         wait 0.05;
     }
+}
+
+ConditionCounter()
+{
+    self endon("disconnect");
+    level endon("end_game");
+
+    self thread ConditionTracker();
+
+    condition_hud = createserverfontstring("hudsmall" , 1.4);
+	condition_hud setPoint("TOPRIGHT", "TOPRIGHT", 0, 30);
+	condition_hud.alpha = 0;
+	condition_hud.color = (1, 0.6, 0.2);
+	condition_hud.hidewheninmenu = 1;
+    condition_hud.label = &"Remaining mannequins: ";
+
+    while (True)
+    {
+	    timer_hud setValue(level.mannequin_count);
+        wait 0.05;
+    }
+}
+
+ConditionTracker()
+{
+    self endon("disconnect");
+    level endon("end_game");
+
+    while (true)
+    {
+        level.current_count = array();
+
+        switch (level.script)
+        {
+            case "zm_transit":
+            case "zm_highrise":
+            case "zm_buried":
+                level.label_count = array("Teddy Bears");
+                break;
+            case "zm_nuked":
+                level.label_count = array("Teddy Bears", "Mannequinns", "Population");
+                break;
+            case "zm_prison":
+                level.label_count = array("Bottles");
+                break;
+            case "zm_tomb":
+                level.label_count = array("Meteors", "Plates", "Radios");
+                break;
+            default:
+                level.label_count = array("");
+        }
+
+        while (level.script == "zm_transit" || level.script == "zm_highrise" || level.script == "zm_buried" || level.script == "zm_prison")
+        {
+            level.current_count[0] = level.meteor_counter;
+            wait 0.05;
+        }
+
+        while (level.script == "zm_nuked")
+        {
+            level.current_count[0] = level.meteor_counter;
+            level.current_count[1] = level.mannequin_count;
+            level.current_count[2] = level.population_count;
+            wait 0.05;
+        }
+
+        while (level.script == "zm_tomb")
+        {
+            level.current_count[0] = level.meteor_counter;
+            level.current_count[1] = level.snd115count;
+            level.current_count[2] = level.found_ee_radio_count;
+            wait 0.05;
+        }
+
+        wait 0.05;
+    }
+
 }
 
 PapSplits()
