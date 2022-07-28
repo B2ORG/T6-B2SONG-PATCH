@@ -13,7 +13,7 @@
 init()
 {
     level thread OnPlayerConnect();
-    level.ACCESS_LEVEL = 0;
+    level.ACCESS_LEVEL = 1;
     level.SONG_AUTO_TIMER_ACTIVE = true;
 }
 
@@ -29,22 +29,18 @@ OnPlayerConnect()
     flag_wait("initial_blackscreen_passed");
     level thread LevelDcWatcher();
     level thread TimerMain();
-    level thread GenerateSongSplit();
+    level thread GenerateSongSplit(level.ACCESS_LEVEL);
     level thread SongWatcher();
-    // level thread PapSplits();
     // level thread AttemptsMain();
 
     if (level.ACESS_LEVEL >= 1)
     {
-        // level thread ConditionCounter();
+        level thread ConditionTracker();
     }
 
     if (level.ACCESS_LEVEL >= 2)
     {
         level thread DisplayBlocker();
-
-        if (level.script == "zm_nuked")
-            level thread MannequinCounter();
     }
 }
 
@@ -118,13 +114,18 @@ TimerMain()
 	timer_hud setTimerUp(0);
 }
 
-GenerateSongSplit()
+GenerateSongSplit(access_level)
 {
     level.playing_songs = 0;
     songs = GetMapSongs();
 
     foreach(song in songs)
+    {
         level thread SongSplit(song.title, song.trigger);
+
+        if (access_level >= 1)
+            level thread SongTrack(song.item, song.id);
+    }
 }
 
 SongSplit(title, trigger)
@@ -158,6 +159,8 @@ GetMapSongs(map)
 
     spec_title = GetSpecific(map, "title");
     spec_trigger = GetSpecific(map, "trigger");
+    spec_items = GetSpecific(map, "item");
+
     if (spec_title.size != spec_trigger.size)
         return;
 
@@ -166,6 +169,8 @@ GetMapSongs(map)
         songs = spawnStruct();
         songs.title = spec_title[i];
         songs.trigger = spec_trigger[i];
+        songs.item = spec_items[i];
+        songs.id = i;
         song[song.size] = songs;
     }
 
@@ -180,6 +185,8 @@ GetSpecific(map, type)
             return array("Carrion");
         else if (type == "trigger")
             return array("meteor_activated");
+        else if (type == "item")
+            return array("Teddy Bears");
     }
     else if (map == "zm_nuked")
     {
@@ -187,6 +194,8 @@ GetSpecific(map, type)
             return array("Samantha's Lullaby", "Coming Home", "Re-Damned");
         else if (type == "trigger")
             return array("meteor_activated", "cominghome_activated", "redamned_activated");
+        else if (type == "item")
+            return array("Teddy Bears", "Mannequinns", "Population");
     }
     else if (map == "zm_highrise")
     {
@@ -194,6 +203,8 @@ GetSpecific(map, type)
             return array("We All Fall Down");
         else if (type == "trigger")
             return array("meteor_activated");
+        else if (type == "item")
+            return array("Teddy Bears"); 
     }
     else if (map == "zm_prison")
     {
@@ -201,6 +212,8 @@ GetSpecific(map, type)
             return array("Rusty Cage", "Where Are We Going");
         else if (type == "trigger")
             return array("meteor_activated", "wherearewegoing_activated");
+        else if (type == "item")
+            return array("Bottles", "Numbers");
     }
     else if (map == "zm_buried")
     {
@@ -208,6 +221,8 @@ GetSpecific(map, type)
             return array("Always Running");
         else if (type == "trigger")
             return array("meteor_activated");
+        else if (type == "item")
+            return array("Teddy Bears"); 
     }
     else if (map == "zm_tomb")
     {
@@ -215,6 +230,8 @@ GetSpecific(map, type)
             return array("Archangel", "Aether", "Shepherd of Fire");
         else if (type == "trigger")
             return array("archengel_activated", "aether_activated", "shepards_activated");
+        else if (type == "item")
+            return array("Meteors", "Plates", "Radios");
     }
     return array();
 }
@@ -368,11 +385,6 @@ OriginsWatcher()
     }
 }
 
-PapSplits()
-{
-
-}
-
 ZoneHud()
 {
     self endon("disconnect");
@@ -417,32 +429,13 @@ ZoneHud()
     }
 }
 
-MannequinCounter()
-{
-    self endon("disconnect");
-    level endon("end_game");
-
-    timer_hud = createserverfontstring("hudsmall" , 1.4);
-	timer_hud setPoint("TOPLEFT", "TOPLEFT", 0, 20);					
-	timer_hud.alpha = 1;
-	timer_hud.color = (1, 0.6, 0.2);
-	timer_hud.hidewheninmenu = 1;
-    hud_blocker.label = &"Remaining mannequins: ";
-
-    while (True)
-    {
-	    timer_hud setValue(level.mannequin_count);
-        wait 0.05;
-    }
-}
-
 DisplayBlocker()
 {
     self endon("disconnect");
     level endon("end_game");
 
     hud_blocker = createserverfontstring("hudsmall" , 1.4);
-	hud_blocker setPoint("TOPLEFT", "TOPLEFT", 0, 0);					
+	hud_blocker setPoint("TOPRIGHT", "TOPRIGHT", 0, 40);
 	hud_blocker.alpha = 1;
 	hud_blocker.color = (1, 0.6, 0.2);
 	hud_blocker.hidewheninmenu = 1;
@@ -471,27 +464,6 @@ AttemptsMain()
     return;
 }
 
-ConditionCounter()
-{
-    self endon("disconnect");
-    level endon("end_game");
-
-    self thread ConditionTracker();
-
-    condition_hud = createserverfontstring("hudsmall" , 1.4);
-	condition_hud setPoint("TOPRIGHT", "TOPRIGHT", 0, 30);
-	condition_hud.alpha = 0;
-	condition_hud.color = (1, 0.6, 0.2);
-	condition_hud.hidewheninmenu = 1;
-    condition_hud.label = &"Remaining mannequins: ";
-
-    while (True)
-    {
-	    timer_hud setValue(level.mannequin_count);
-        wait 0.05;
-    }
-}
-
 ConditionTracker()
 {
     self endon("disconnect");
@@ -501,29 +473,19 @@ ConditionTracker()
     {
         level.current_count = array();
 
-        switch (level.script)
-        {
-            case "zm_transit":
-            case "zm_highrise":
-            case "zm_buried":
-                level.label_count = array("Teddy Bears");
-                break;
-            case "zm_nuked":
-                level.label_count = array("Teddy Bears", "Mannequinns", "Population");
-                break;
-            case "zm_prison":
-                level.label_count = array("Bottles");
-                break;
-            case "zm_tomb":
-                level.label_count = array("Meteors", "Plates", "Radios");
-                break;
-            default:
-                level.label_count = array("");
-        }
-
-        while (level.script == "zm_transit" || level.script == "zm_highrise" || level.script == "zm_buried" || level.script == "zm_prison")
+        while (level.script == "zm_transit" || level.script == "zm_highrise" || level.script == "zm_buried")
         {
             level.current_count[0] = level.meteor_counter;
+            level.current_count[1] = 0;
+            level.current_count[2] = 0;
+            wait 0.05;
+        }
+
+        while (level.script == "zm_prison")
+        {
+            level.current_count[0] = level.meteor_counter;
+            level.current_count[1] = GetCurrentNixie();
+            level.current_count[2] = 0;
             wait 0.05;
         }
 
@@ -545,5 +507,42 @@ ConditionTracker()
 
         wait 0.05;
     }
+}
 
+SongTrack(label, id)
+{
+    self endon("disconnect");
+    level endon("end_game");
+    
+    tracking_hud = createserverfontstring("hudsmall" , 1.3);
+	tracking_hud setPoint("TOPLEFT", "TOPLEFT", 0, id * 20);					
+	tracking_hud.color = (1, 0.8, 1);
+	tracking_hud.hidewheninmenu = 1;
+	tracking_hud.alpha = 0;
+
+    while (true)
+    {
+        if (isDefined(level.current_count[id]))
+            val = level.current_count[id];
+        else
+            val = 0;
+
+        tracking_hud setText(label + ": " + val);
+
+        if (tracking_hud.alpha == 0)
+            tracking_hud.alpha = 1;
+
+        while (isDefined(level.current_count[id]) && val == level.current_count[id])
+            wait 0.05;
+
+        wait 0.05;
+    }
+}
+
+GetCurrentNixie()
+{
+    if (!isdefined(level.a_nixie_tube_code) || !isdefined(level.a_nixie_tube_code[3]))
+        return "000";
+    
+    return "" + level.a_nixie_tube_code[1] + level.a_nixie_tube_code[2] + level.a_nixie_tube_code[3];
 }
