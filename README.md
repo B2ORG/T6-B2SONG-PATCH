@@ -18,4 +18,5 @@
 
 ### V4
 - Attempt counter has been added. It will reset between maps and game restarts.
+- All perma perks are now awarded at the beginning of each game on maps supporting them.
 - Progress counter has been added for Access Level 1 & 2.

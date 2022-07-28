@@ -1,5 +1,6 @@
 #include maps/mp/gametypes_zm/_hud_util;
 #include maps/mp/zombies/_zm_utility;
+#include maps/mp/zombies/_zm_stats;
 #include common_scripts/utility;
 #include maps/mp/zm_transit;
 #include maps/mp/zm_nuked_amb;
@@ -25,6 +26,7 @@ OnPlayerConnect()
     iPrintLn("^5SongSR Auto-Timer V3");
     iPrintLn("Access level: " + GetAccessColor() + level.ACCESS_LEVEL);
     SetDvars();
+    level thread AwardPermaPerks();
 
     flag_wait("initial_blackscreen_passed");
     level thread TimerMain();
@@ -541,4 +543,39 @@ GetCurrentNixie()
         return "000";
     
     return "" + level.a_nixie_tube_code[1] + level.a_nixie_tube_code[2] + level.a_nixie_tube_code[3];
+}
+
+AwardPermaPerks()
+{
+    if (level.script != "zm_transit" && level.script != "zm_highrise" && level.script != "zm_buried")
+        return;
+
+    foreach (player in level.players)
+    {
+        // Full bank
+        player.account_value = level.bank_account_max;
+	    player set_map_stat("depositBox", player.account_value, level.banking_map);
+
+        // Perma perks stats
+        i = 0;
+        while(i < level.pers_upgrades_keys.size)
+        {
+            name = level.pers_upgrades_keys[i];
+
+            j = 0;
+            while (j < level.pers_upgrades[name].stat_names.size)
+            {
+                stat_name = level.pers_upgrades[name].stat_names[j];
+                player set_global_stat(stat_name, level.pers_upgrades[name].stat_desired_values[j]);
+                player.stats_this_frame[stat_name] = 1;
+                j++;
+
+                wait 0.05;
+            }
+            i++;
+
+            wait 0.05;
+        }
+    }
+    return;
 }
