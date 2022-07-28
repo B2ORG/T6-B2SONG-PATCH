@@ -27,11 +27,10 @@ OnPlayerConnect()
     SetDvars();
 
     flag_wait("initial_blackscreen_passed");
-    level thread LevelDcWatcher();
     level thread TimerMain();
     level thread GenerateSongSplit(level.ACCESS_LEVEL);
     level thread SongWatcher();
-    // level thread AttemptsMain();
+    level thread AttemptsMain();
 
     if (level.ACESS_LEVEL >= 1)
     {
@@ -60,12 +59,6 @@ SetDvars()
     // Console values according to Plutonium
     setdvar("player_strafespeedscale", 1);
     setdvar("player_backspeedscale", 0.85);
-}
-
-LevelDcWatcher()
-{
-    level.players[0] waittill("disconnect");
-    level notify("disconnected");
 }
 
 GetAccessColor()
@@ -455,13 +448,16 @@ AttemptsMain()
     attempt_hud.alpha = 1;
     attempt_hud.color = (1, 0.8, 1);
     attempt_hud.hidewheninmenu = 1;
-    attempt_hud.label = "Attempts: ";
-    attempt_hud setValue(getDvarInt("song_attempts"));
-    iPrintLn(getDvarInt("song_attempts"));
+    attempt_hud.label = &"Attempts: ";
 
-    level waittill("disconnected");
+    if (level.script != getDvar("song_attempt_map"))
+    {
+        setDvar("song_attempts", 0);
+        setDvar("song_attempt_map", level.script);
+    }
+
+    attempt_hud setValue(getDvarInt("song_attempts"));
     setDvar("song_attempts", getDvarInt("song_attempts") + 1);
-    return;
 }
 
 ConditionTracker()
