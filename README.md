@@ -15,3 +15,7 @@
 - Seconds decimals (ms) have been reduced to one, due to 2nd decimal being inaccurate at times. </br>Eg: `.8 == 800ms`</br>
 - Mob song names have been fixed
 - Patch prints have been improved
+
+### V4
+- Attempt counter has been added. It will reset between maps and game restarts.
+- Progress counter has been added for Access Level 1 & 2.
