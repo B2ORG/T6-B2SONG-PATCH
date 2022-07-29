@@ -10,6 +10,20 @@
 - Patch does not change any game rules besides setting Strafe & Backspeed to proper values (which is being done by both Redacted and Plutonium anyways) </br>
 - If you want to report a problem or request a feature, you may use the Issues section. </br>
 
+### Access levels
+##### `0` - Only basic features
+- Timer</br>
+- Splits</br>
+- Perma perks</br>
+- Attempt counter</br>
+- Backspeed</br>
+
+##### `1` - Some extras
+- Progress meter</br>
+
+##### `2` - All features
+- Song lock meter</br>
+
 # Changelog
 ### V3
 - Seconds decimals (ms) have been reduced to one, due to 2nd decimal being inaccurate at times. </br>Eg: `.8 == 800ms`</br>
