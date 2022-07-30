@@ -27,7 +27,6 @@ OnPlayerConnect()
     iPrintLn("^5SongSR Auto-Timer V" + level.PATCH_VERSION);
     iPrintLn("Access level: " + GetAccessColor() + level.ACCESS_LEVEL);
     SetDvars();
-    level thread AwardPermaPerks();
 
     flag_wait("initial_blackscreen_passed");
     level thread TimerMain();
@@ -51,6 +50,8 @@ OnPlayerJoined()
     for (;;)
     {
 	    level waittill("connecting", player );
+
+        player thread AwardPermaPerks();
 
         if (level.ACCESS_LEVEL >= 1)
             player thread ZoneHud();
@@ -551,31 +552,23 @@ AwardPermaPerks()
     if (level.script != "zm_transit" && level.script != "zm_highrise" && level.script != "zm_buried")
         return;
 
-    foreach (player in level.players)
+    if (level.round_number > 1)
+        return;
+
+    // Full bank
+    self.account_value = level.bank_account_max;
+    self set_map_stat("depositBox", self.account_value, level.banking_map);
+
+    // Perma perks stats
+    for (i = 0; i < level.pers_upgrades_keys.size; i++)
     {
-        // Full bank
-        player.account_value = level.bank_account_max;
-	    player set_map_stat("depositBox", player.account_value, level.banking_map);
+        name = level.pers_upgrades_keys[i];
 
-        // Perma perks stats
-        i = 0;
-        while(i < level.pers_upgrades_keys.size)
+        for (j = 0; j < level.pers_upgrades[name].stat_names.size; j++)
         {
-            name = level.pers_upgrades_keys[i];
-
-            j = 0;
-            while (j < level.pers_upgrades[name].stat_names.size)
-            {
-                stat_name = level.pers_upgrades[name].stat_names[j];
-                player set_global_stat(stat_name, level.pers_upgrades[name].stat_desired_values[j]);
-                player.stats_this_frame[stat_name] = 1;
-                j++;
-
-                wait 0.05;
-            }
-            i++;
-
-            wait 0.05;
+            stat_name = level.pers_upgrades[name].stat_names[j];
+            self set_global_stat(stat_name, level.pers_upgrades[name].stat_desired_values[j]);
+            self.stats_this_frame[stat_name] = 1;
         }
     }
     return;
