@@ -10,6 +10,9 @@
 - Patch does not change any game rules besides setting Strafe & Backspeed to proper values (which is being done by both Redacted and Plutonium anyways) </br>
 - If you want to report a problem or request a feature, you may use the Issues section. </br>
 
+### Broken versions history
+- 4.0 - Broken perma perks -> Fixed in 4.1
+
 ### Access levels
 ##### `0` - Only basic features
 - Timer</br>
