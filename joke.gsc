@@ -15,7 +15,7 @@ init()
 {
     level thread OnPlayerConnect();
     level.ACCESS_LEVEL = 2;
-    level.PATCH_VERSION = 4;
+    level.PATCH_VERSION = 4.1;
     level.SONG_AUTO_TIMER_ACTIVE = true;
 }
 
