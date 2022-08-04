@@ -15,7 +15,7 @@ init()
 {
     level thread OnPlayerConnect();
     level.ACCESS_LEVEL = 2;
-    level.PATCH_VERSION = 4.1;
+    level.PATCH_VERSION = 5;
     level.SONG_AUTO_TIMER_ACTIVE = true;
 }
 
@@ -24,7 +24,7 @@ OnPlayerConnect()
     level thread OnPlayerJoined();
 
 	level waittill("initial_players_connected");
-    iPrintLn("^5SongSR Auto-Timer V" + level.PATCH_VERSION);
+    iPrintLn("^3Song Auto-Timer V" + level.PATCH_VERSION);
     // iPrintLn("Access level: " + GetAccessColor() + level.ACCESS_LEVEL);
     SetDvars();
 
