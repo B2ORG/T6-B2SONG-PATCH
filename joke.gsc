@@ -395,6 +395,8 @@ ZoneHud()
     self endon("disconnect");
     level endon("end_game");
 
+    PlayerThreadBlackscreenWaiter();
+
     zone_hud = newClientHudElem(self);
 	zone_hud.alignx = "left";
 	zone_hud.aligny = "bottom";
@@ -587,8 +589,7 @@ SpeedTracker()
     self endon("disconnect");
     level endon("end_game");
 
-    while (!flag("game_started"))
-        wait 0.05;
+    PlayerThreadBlackscreenWaiter();
 
     self.hud_velocity = createfontstring("hudsmall" , 1.4);
 	self.hud_velocity setPoint("TOPRIGHT", "TOPRIGHT", 0, 70);
@@ -622,4 +623,11 @@ GspeedTracker()
         hud_gspeed setValue(current_gspeed);
         wait 0.05;
     }
+}
+
+PlayerThreadBlackscreenWaiter()
+{
+    while (!flag("game_started"))
+        wait 0.05;
+    return;
 }
