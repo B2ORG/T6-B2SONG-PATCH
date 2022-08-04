@@ -29,10 +29,12 @@ OnPlayerConnect()
     SetDvars();
 
     flag_wait("initial_blackscreen_passed");
+    flag_set("game_started");
     level thread TimerMain();
     level thread GenerateSongSplit(level.ACCESS_LEVEL);
     level thread SongWatcher();
     level thread AttemptsMain();
+    level thread GspeedTracker();
 
     // if (level.ACESS_LEVEL >= 1)
     // {
@@ -52,6 +54,7 @@ OnPlayerJoined()
 	    level waittill("connecting", player );
 
         player thread AwardPermaPerks();
+        player thread SpeedTracker();
 
         // if (level.ACCESS_LEVEL >= 1)
             player thread ZoneHud();
@@ -60,9 +63,12 @@ OnPlayerJoined()
 
 SetDvars()
 {
+    flag_init("game_started");
+    
     // Console values according to Plutonium
     setdvar("player_strafespeedscale", 1);
     setdvar("player_backspeedscale", 0.85);
+    setdvar("g_speed", 190);
 }
 
 GetAccessColor()
@@ -574,4 +580,46 @@ AwardPermaPerks()
         }
     }
     return;
+}
+
+SpeedTracker()
+{
+    self endon("disconnect");
+    level endon("end_game");
+
+    while (!flag("game_started"))
+        wait 0.05;
+
+    self.hud_velocity = createfontstring("hudsmall" , 1.4);
+	self.hud_velocity setPoint("TOPRIGHT", "TOPRIGHT", 0, 70);
+	self.hud_velocity.alpha = 1;
+	self.hud_velocity.color = (0.4, 1, 0.7);
+	self.hud_velocity.hidewheninmenu = 1;
+    self.hud_velocity.label = &"Velocity: ";
+
+
+    while (true)
+    {
+        self.hud_velocity setValue(int(length(self getvelocity())));
+        wait 0.05;
+    }
+}
+
+GspeedTracker()
+{
+    hud_gspeed = createserverfontstring("hudsmall" , 1.4);
+	hud_gspeed setPoint("TOPRIGHT", "TOPRIGHT", 0, 90);
+	hud_gspeed.alpha = 1;
+	hud_gspeed.color = (0.4, 1, 0.7);
+	hud_gspeed.hidewheninmenu = 1;
+    hud_gspeed.label = &"Gspeed: ";
+
+    while (true)
+    {
+        current_gspeed = getDvarInt("g_speed");
+        if (current_gspeed != 190)
+            hud_gspeed.color = (1, 0, 0);
+        hud_gspeed setValue(current_gspeed);
+        wait 0.05;
+    }
 }
