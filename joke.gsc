@@ -25,7 +25,7 @@ OnPlayerConnect()
 
 	level waittill("initial_players_connected");
     iPrintLn("^5SongSR Auto-Timer V" + level.PATCH_VERSION);
-    iPrintLn("Access level: " + GetAccessColor() + level.ACCESS_LEVEL);
+    // iPrintLn("Access level: " + GetAccessColor() + level.ACCESS_LEVEL);
     SetDvars();
 
     flag_wait("initial_blackscreen_passed");
@@ -34,15 +34,15 @@ OnPlayerConnect()
     level thread SongWatcher();
     level thread AttemptsMain();
 
-    if (level.ACESS_LEVEL >= 1)
-    {
+    // if (level.ACESS_LEVEL >= 1)
+    // {
         level thread ConditionTracker();
-    }
+    // }
 
-    if (level.ACCESS_LEVEL >= 2)
-    {
+    // if (level.ACCESS_LEVEL >= 2)
+    // {
         level thread DisplayBlocker();
-    }
+    // }
 }
 
 OnPlayerJoined()
@@ -53,7 +53,7 @@ OnPlayerJoined()
 
         player thread AwardPermaPerks();
 
-        if (level.ACCESS_LEVEL >= 1)
+        // if (level.ACCESS_LEVEL >= 1)
             player thread ZoneHud();
     }
 }
@@ -67,32 +67,34 @@ SetDvars()
 
 GetAccessColor()
 {
-    if (isdefined(level.ACCESS_LEVEL))
-    {
-        if (level.ACCESS_LEVEL == 0)
-            return "^2";   // Green
-        else if (level.ACCESS_LEVEL == 1)
-            return "^3";   // Yellow
-        else if (level.ACCESS_LEVEL == 2)
-            return "^1";   // Red
-    }
-    else
-        return "";         // White
+    // if (isdefined(level.ACCESS_LEVEL))
+    // {
+    //     if (level.ACCESS_LEVEL == 0)
+    //         return "^2";   // Green
+    //     else if (level.ACCESS_LEVEL == 1)
+    //         return "^3";   // Yellow
+    //     else if (level.ACCESS_LEVEL == 2)
+    //         return "^1";   // Red
+    // }
+    // else
+    //     return "";         // White
+    return "^2";
 }
 
 SetSplitColor()
 {
-    if (isdefined(level.ACCESS_LEVEL))
-    {
-        if (level.ACCESS_LEVEL == 0)
-            return (0.6, 0.8, 1);   // Blue
-        else if (level.ACCESS_LEVEL == 1)
-            return (0.6, 0.2, 1);   // Purple
-        else if (level.ACCESS_LEVEL == 2)
-            return (1, 0.6, 0.6);   // Red
-    }
-    else
-        return (1, 1, 1);           // White
+    // if (isdefined(level.ACCESS_LEVEL))
+    // {
+    //     if (level.ACCESS_LEVEL == 0)
+    //         return (0.6, 0.8, 1);   // Blue
+    //     else if (level.ACCESS_LEVEL == 1)
+    //         return (0.6, 0.2, 1);   // Purple
+    //     else if (level.ACCESS_LEVEL == 2)
+    //         return (1, 0.6, 0.6);   // Red
+    // }
+    // else
+    //     return (1, 1, 1);           // White
+    return (0.6, 0.8, 1);   // Blue
 }
 
 TimerMain()
@@ -120,7 +122,7 @@ GenerateSongSplit(access_level)
     {
         level thread SongSplit(song.title, song.trigger);
 
-        if (access_level >= 1)
+        // if (access_level >= 1)
             level thread SongTrack(song.item, song.id);
     }
 }
