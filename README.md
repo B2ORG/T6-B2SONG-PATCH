@@ -13,20 +13,6 @@
 ### Broken versions history
 - 4.0 - Broken perma perks -> Fixed in 4.1
 
-### Access levels
-##### `0` - Only basic features
-- Timer</br>
-- Splits</br>
-- Perma perks</br>
-- Attempt counter</br>
-- Backspeed</br>
-
-##### `1` - Some extras
-- Progress meter</br>
-
-##### `2` - All features
-- Song lock meter</br>
-
 # Changelog
 ### V3
 - Seconds decimals (ms) have been reduced to one, due to 2nd decimal being inaccurate at times. </br>Eg: `.8 == 800ms`</br>
@@ -40,3 +26,8 @@
 
 ### V4.1
 - Fixed an issue where permaperk would not be lost and would remain active for the entire game if player would break permaperk conditions within first few seconds of the game
+
+### V5
+- Removed access levels, players agree to have all the functionalities in competitive runs
+- Added Velocity meter and Gspeed display
+- Improved zone HUD handling
