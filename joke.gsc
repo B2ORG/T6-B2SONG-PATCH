@@ -15,7 +15,7 @@ init()
 {
     level thread OnPlayerConnect();
     level.ACCESS_LEVEL = 2;
-    level.PATCH_VERSION = 5;
+    level.PATCH_VERSION = 5.1;
     level.SONG_AUTO_TIMER_ACTIVE = true;
 }
 
@@ -601,7 +601,7 @@ SpeedTracker()
 
     while (true)
     {
-        self.hud_velocity setValue(int(length(self getvelocity())));
+        self.hud_velocity setValue(int(length(self getvelocity() * (1, 1, 0))));
         wait 0.05;
     }
 }

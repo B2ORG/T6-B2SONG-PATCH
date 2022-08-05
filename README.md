@@ -12,6 +12,7 @@
 
 ### Broken versions history
 - 4.0 - Broken perma perks -> Fixed in 4.1
+- 5.0 - Inaccurate velocity meter -> Fixed in 5.1
 
 # Changelog
 ### V3
@@ -31,3 +32,6 @@
 - Removed access levels, players agree to have all the functionalities in competitive runs
 - Added Velocity meter and Gspeed display
 - Improved zone HUD handling
+
+### V5.1
+- Fixed Z axis movement speed values counting towards velocity meter
