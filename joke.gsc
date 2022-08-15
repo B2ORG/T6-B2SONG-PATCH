@@ -35,6 +35,7 @@ OnPlayerConnect()
     level thread SongWatcher();
     level thread AttemptsMain();
     level thread GspeedTracker();
+    level thread PointDrops();
 
     // if (level.ACESS_LEVEL >= 1)
     // {
@@ -455,6 +456,25 @@ DisplayBlocker()
     }
 }
 
+PointDrops()
+{
+    self endon("disconnect");
+    level endon("end_game");
+
+    hud_points = createserverfontstring("hudsmall" , 1.4);
+    hud_points setPoint("TOPRIGHT", "TOPRIGHT", 0, 60);
+    hud_points.alpha = 1;
+    hud_points.color = (1, 0.6, 0.2);
+    hud_points.hidewheninmenu = 1;
+    hud_points.label = &"Pointdrop coming: ";
+
+    while (true)
+    {
+        hud_points setValue(level.zombie_vars["zombie_drop_item"]);
+        wait 0.05;
+    }
+}
+
 AttemptsMain()
 {
     attempt_hud = createserverfontstring("hudsmall" , 1.5);
@@ -592,7 +612,7 @@ SpeedTracker()
     PlayerThreadBlackscreenWaiter();
 
     self.hud_velocity = createfontstring("hudsmall" , 1.4);
-	self.hud_velocity setPoint("TOPRIGHT", "TOPRIGHT", 0, 70);
+	self.hud_velocity setPoint("TOPRIGHT", "TOPRIGHT", 0, 90);
 	self.hud_velocity.alpha = 1;
 	self.hud_velocity.color = (0.4, 1, 0.7);
 	self.hud_velocity.hidewheninmenu = 1;
@@ -609,7 +629,7 @@ SpeedTracker()
 GspeedTracker()
 {
     hud_gspeed = createserverfontstring("hudsmall" , 1.4);
-	hud_gspeed setPoint("TOPRIGHT", "TOPRIGHT", 0, 90);
+	hud_gspeed setPoint("TOPRIGHT", "TOPRIGHT", 0, 110);
 	hud_gspeed.alpha = 1;
 	hud_gspeed.color = (0.4, 1, 0.7);
 	hud_gspeed.hidewheninmenu = 1;
