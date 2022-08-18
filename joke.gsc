@@ -17,6 +17,7 @@ init()
     level.ACCESS_LEVEL = 2;
     level.PATCH_VERSION = 5.1;
     level.SONG_AUTO_TIMER_ACTIVE = true;
+    level.FIRSTBOX_LEGIT = false;
 }
 
 OnPlayerConnect()
@@ -36,6 +37,11 @@ OnPlayerConnect()
     level thread AttemptsMain();
     level thread GspeedTracker();
     level thread PointDrops();
+
+    if (isdefined(level.FIRSTBOX_LEGIT) && !level.FIRSTBOX_LEGIT)
+        level thread FirstBoxProtector();
+
+    level.players[0].score = 50000;
 
     // if (level.ACESS_LEVEL >= 1)
     // {
@@ -649,5 +655,113 @@ PlayerThreadBlackscreenWaiter()
 {
     while (!flag("game_started"))
         wait 0.05;
+    return;
+}
+
+FirstBoxProtector()
+// Yes i know there is ways to bypass that lol
+{
+    self endon("disconnect");
+    level endon("end_game");
+
+    level.is_first_box = false;
+
+    self thread FirstBoxInfo();
+    self thread ScanInBox();
+    self thread CompareKeys();
+
+    level waittill("end_game");
+}
+
+FirstBoxInfo()
+{
+    self endon("disconnect");
+    level endon("end_game");
+
+    if (level.script == "zm_nuked" || level.script == "zm_buried")
+    {
+        while (true)
+        {
+            if (isDefined(level.is_first_box) && level.is_first_box)
+            {
+                iPrintLn("^1First Box Detected");
+                break;
+            }
+            wait 0.25;
+        }
+
+        hud_1box = createserverfontstring("hudsmall" , 1.8);
+        hud_1box setPoint("CENTER", "TOP", 0, 25);
+        hud_1box.alpha = 0.12;
+        hud_1box.color = (0.9, 0, 0);
+        hud_1box.hidewheninmenu = 1;
+        hud_1box setText("FIRST BOX");
+    }
+
+    level waittill("end_game");
+}
+
+ScanInBox()
+{
+    self endon("disconnect");
+    level endon("end_game");
+
+    if (level.script == "zm_nuked")
+        should_be_in_box = 26;
+    else if (level.script == "zm_buried")
+        should_be_in_box = 22;
+
+    while (isDefined(should_be_in_box))
+    {
+        in_box = 0;
+        wpn_keys = getarraykeys(level.zombie_weapons);
+
+        for (i=0; i<wpn_keys.size; i++)
+        {
+            if (maps\mp\zombies\_zm_weapons::get_is_in_box(wpn_keys[i]))
+                in_box++;
+        }
+
+        // print("in_box: " + in_box + " should: " + should_be_in_box);
+
+        if (in_box != should_be_in_box)
+        {
+            // iPrintLn("1stbox_box");
+            level.is_first_box = true;
+            break;
+        }
+
+        wait_network_frame();
+    }
+    return;
+}
+
+CompareKeys()
+{
+    self endon("disconnect");
+    level endon("end_game");
+
+    an_array = array();
+    dupes = 0;
+
+    wait(randomIntRange(2, 22));
+
+    for (i=0; i<10; i++)
+    {
+        rando = maps\mp\zombies\_zm_magicbox::treasure_chest_chooseweightedrandomweapon(level.players[0]);
+        if (isinarray(an_array, rando))
+            dupes += 1;
+        else
+            an_array[an_array.size] = rando;
+        
+        wait_network_frame();
+    }
+
+    if (dupes > 3)
+    {
+        // iPrintLn("1stbox_keys");
+        level.is_first_box = true;
+    }
+
     return;
 }
