@@ -667,8 +667,14 @@ FirstBoxProtector()
     level.is_first_box = false;
 
     self thread FirstBoxInfo();
-    self thread ScanInBox();
-    self thread CompareKeys();
+
+    if (isDefined(level.SONG_1STBOX_ACTIVE) && level.SONG_1STBOX_ACTIVE)
+        level.is_first_box = true;
+    else
+    {
+        self thread ScanInBox();
+        self thread CompareKeys();
+    }
 
     level waittill("end_game");
 }
