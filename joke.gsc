@@ -15,7 +15,7 @@ init()
 {
     level thread OnPlayerConnect();
     level.ACCESS_LEVEL = 2;
-    level.PATCH_VERSION = 5.1;
+    level.PATCH_VERSION = 6;
     level.SONG_AUTO_TIMER_ACTIVE = true;
     level.FIRSTBOX_LEGIT = false;
 }
@@ -41,7 +41,7 @@ OnPlayerConnect()
     if (isdefined(level.FIRSTBOX_LEGIT) && !level.FIRSTBOX_LEGIT)
         level thread FirstBoxProtector();
 
-    level.players[0].score = 50000;
+    // level.players[0].score = 50000;
 
     // if (level.ACESS_LEVEL >= 1)
     // {
