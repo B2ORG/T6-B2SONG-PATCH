@@ -411,8 +411,8 @@ ZoneHud()
 	zone_hud.vertalign = "user_bottom";
 	zone_hud.x = 8;
 	zone_hud.y = -111;
-    zone_hud.fontscale = 1.3;
-	zone_hud.alpha = 1;
+    zone_hud.fontscale = 1.1;
+	zone_hud.alpha = 0.4;
 	zone_hud.color = (1, 1, 1);
 	zone_hud.hidewheninmenu = 1;
 
@@ -432,7 +432,7 @@ ZoneHud()
             zone_hud settext(zone);
 
             zone_hud fadeovertime(0.2);
-            zone_hud.alpha = 0.75;
+            zone_hud.alpha = 0.4;
             wait 1;
 
             zone_hud fadeovertime(0.2);
