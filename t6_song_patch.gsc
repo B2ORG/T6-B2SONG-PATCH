@@ -17,6 +17,7 @@ init()
     level.SONG_TIMING["version"] = 7;
     level.SONG_TIMING["debug"] = true;
     level.SONG_TIMING["hud_right_pos"] = 30;
+    level.SONG_TIMING["allow_firstbox"] = true;
     set_dvars();
 
     level thread song_main();
@@ -35,7 +36,10 @@ song_main()
     flag_set("game_started");
 
     song_hud();
-    level thread gspeed_watcher();
+    level thread first_box_handler();
+
+    if (is_nuketown())
+        level thread move_chest();
 
     /*
     level thread generate_song_split(level.ACCESS_LEVEL);
@@ -75,9 +79,11 @@ song_hud()
     level thread game_timer();
     level thread round_timer();
     level thread attempts_hud();
+    level thread gspeed_watcher();
 
-    level thread generate_sign(-66, "POINT DROP", ::eval_point_drop);
-    level thread generate_sign(66, "MUSIC LOCK", ::eval_music_override);
+    level thread generate_sign(-125, "MUSIC LOCK", ::eval_music_override);
+    level thread generate_sign(0, "POINT DROP", ::eval_point_drop);
+    level thread generate_sign(125, "FIRST BOX", ::eval_first_box);
 }
 
 print(arg)
@@ -113,6 +119,7 @@ song_config(key)
 set_dvars()
 {
     flag_init("game_started");
+    flag_init("box_rigged");
 
     setdvar("player_strafespeedscale", 1);
     setdvar("player_backspeedscale", 0.9);
@@ -435,6 +442,13 @@ eval_music_override()
     return false;
 }
 
+eval_first_box()
+{
+    if (isDefined(level.is_first_box) && level.is_first_box)
+        return true;
+    return false;
+}
+
 gspeed_watcher()
 {
     while (true)
@@ -448,6 +462,433 @@ gspeed_watcher()
     }
 }
 
+first_box_handler()
+{
+    level endon("end_game");
+
+    level.is_first_box = false;
+
+	// Init threads watching the status of boxes
+	self thread init_box_status_watcher();
+	// Scan weapons in the box
+	self thread scan_in_box();
+	// First Box main loop
+	self thread first_box();
+}
+
+debug_print_initial_boxsize()
+{
+	in_box = 0;
+
+	foreach (weapon in getArrayKeys(level.zombie_weapons))
+	{
+		if (maps\mp\zombies\_zm_weapons::get_is_in_box(weapon))
+			in_box++;
+	}
+	debug_print("Size of initial box weapon list: " + in_box);
+}
+
+init_box_status_watcher()
+{
+    level endon("end_game");
+
+	level.total_box_hits = 0;
+
+	while (!isDefined(level.chests))
+		wait 0.05;
+	
+	foreach(chest in level.chests)
+		chest thread watch_box_state();
+}
+
+watch_box_state()
+{
+    level endon("end_game");
+
+    while (!isDefined(self.zbarrier))
+        wait 0.05;
+
+	while (true)
+	{
+        while (self.zbarrier getzbarrierpiecestate(2) != "opening")
+            wait 0.05;
+		level.total_box_hits++;
+        while (self.zbarrier getzbarrierpiecestate(2) == "opening")
+            wait 0.05;
+	}
+}
+
+scan_in_box()
+{
+    level endon("end_game");
+
+	// Only town needed
+    if (is_town() || is_farm() || is_depot() || is_tranzit())
+        should_be_in_box = 25;
+	else if (is_nuketown())
+        should_be_in_box = 26;
+	else if (is_die_rise())
+        should_be_in_box = 24;
+	else if (is_mob())
+        should_be_in_box = 16;
+    else if (is_buried())
+        should_be_in_box = 22;
+	else if (is_origins())
+		should_be_in_box = 23;
+
+	offset = 0;
+	if (is_die_rise() || is_origins())
+		offset = 1;
+
+    while (isDefined(should_be_in_box))
+    {
+        wait 0.05;
+
+        in_box = 0;
+
+		foreach (weapon in getarraykeys(level.zombie_weapons))
+        {
+            if (maps\mp\zombies\_zm_weapons::get_is_in_box(weapon))
+                in_box++;
+        }
+
+		// debug_print("in_box: " + in_box + " should: " + should_be_in_box);
+
+        if (in_box == should_be_in_box)
+			continue;
+
+		else if ((offset > 0) && (in_box == (should_be_in_box + offset)))
+			continue;
+
+		level.is_first_box = true;
+		break;
+
+    }
+    return;
+}
+
+first_box()
+{	
+    level endon("end_game");
+
+	if (!song_config("allow_firstbox"))
+		return;
+
+	while (true)
+	{
+		message = undefined;
+
+		level waittill("say", message, player);
+
+		if (isSubStr(message, "fb"))
+			wpn_key = getSubStr(message, 3);
+		else
+			continue;
+
+		self thread rig_box(wpn_key, player);
+		wait_network_frame();
+
+		wpn_key = undefined;
+
+		while (flag("box_rigged"))
+			wait 0.05;
+	}
+}
+
+rig_box(gun, player)
+{
+    level endon("end_game");
+
+	weapon_key = get_weapon_key(gun, ::box_weapon_verification);
+	if (weapon_key == "")
+	{
+		iPrintLn("Wrong weapon key: ^1" + gun);
+		return;
+	}
+
+	// weapon_name = level.zombie_weapons[weapon_key].name;
+	iPrintLn("" + player.name + " set box weapon to: ^3", weapon_display_wrapper(weapon_key));
+	level.is_first_box = true;
+
+	saved_check = level.special_weapon_magicbox_check;
+	current_box_hits = level.total_box_hits;
+	removed_guns = array();
+
+	flag_set("box_rigged");
+	debug_print("FIRST BOX: flag('box_rigged'): " + flag("box_rigged"));
+
+	level.special_weapon_magicbox_check = undefined;
+	foreach(weapon in getarraykeys(level.zombie_weapons))
+	{
+		if ((weapon != weapon_key) && level.zombie_weapons[weapon].is_in_box == 1)
+		{
+			removed_guns[removed_guns.size] = weapon;
+			level.zombie_weapons[weapon].is_in_box = 0;
+
+			debug_print("FIRST BOX: setting " + weapon + ".is_in_box to 0");
+		}
+	}
+
+	while ((current_box_hits == level.total_box_hits) || !isDefined(level.total_box_hits))
+		wait 0.05;
+	
+	wait 5;
+
+	level.special_weapon_magicbox_check = saved_check;
+
+	debug_print("FIRST BOX: removed_guns.size " + removed_guns.size);
+	if (removed_guns.size > 0)
+	{
+		foreach(rweapon in removed_guns)
+		{
+			level.zombie_weapons[rweapon].is_in_box = 1;
+			debug_print("FIRST BOX: setting " + rweapon + ".is_in_box to 1");
+		}
+	}
+
+	flag_clear("box_rigged");
+	return;
+}
+
+get_weapon_key(weapon_str, verifier)
+{
+	switch(weapon_str)
+	{
+		case "mk1":
+			key = "ray_gun_zm";
+			break;
+		case "mk2":
+			key = "raygun_mark2_zm";
+			break;
+		case "monk":
+			key = "cymbal_monkey_zm";
+			break;
+		case "emp":
+			key = "emp_grenade_zm";
+			break;
+		case "time":
+			key = "time_bomb_zm";
+			break;
+		case "sliq":
+			key = "slipgun_zm";
+			break;
+		case "blunder":
+			key = "blundergat_zm";
+			break;
+		case "paralyzer":
+			key = "slowgun_zm";
+			break;
+
+		case "ak47":
+			key = "ak47_zm";
+			break;
+		case "an94":
+			key = "an94_zm";
+			break;
+		case "barret":
+			key = "barretm82_zm";
+			break;
+		case "b23r":
+			key = "beretta93r_zm";
+			break;
+		case "b23re":
+			key = "beretta93r_extclip_zm";
+			break;
+		case "dsr":
+			key = "dsr50_zm";
+			break;
+		case "evo":
+			key = "evoskorpion_zm";
+			break;
+		case "57":
+			key = "fiveseven_zm";
+			break;
+		case "257":
+			key = "fivesevendw_zm";
+			break;
+		case "fal":
+			key = "fnfal_zm";
+			break;
+		case "galil":
+			key = "galil_zm";
+			break;
+		case "mtar":
+			key = "tar21_zm";
+			break;
+		case "hamr":
+			key = "hamr_zm";
+			break;
+		case "m27":
+			key = "hk416_zm";
+			break;
+		case "exe":
+			key = "judge_zm";
+			break;
+		case "kap":
+			key = "kard_zm";
+			break;
+		case "bk":
+			key = "knife_ballistic_zm";
+			break;
+		case "ksg":
+			key = "ksg_zm";
+			break;
+		case "wm":
+			key = "m32_zm";
+			break;
+		case "mg":
+			key = "mg08_zm";
+			break;
+		case "lsat":
+			key = "lsat_zm";
+			break;
+		case "dm":
+			key = "minigun_alcatraz_zm";
+		case "mp40":
+			key = "mp40_stalker_zm";
+			break;
+		case "pdw":
+			key = "pdw57_zm";
+			break;
+		case "pyt":
+			key = "python_zm";
+			break;
+		case "rnma":
+			key = "rnma_zm";
+			break;
+		case "type":
+			key = "type95_zm";
+			break;
+		case "rpd":
+			key = "rpd_zm";
+			break;
+		case "s12":
+			key = "saiga12_zm";
+			break;
+		case "scar":
+			key = "scar_zm";
+			break;
+		case "m1216":
+			key = "srm1216_zm";
+			break;
+		case "tommy":
+			key = "thompson_zm";
+			break;
+		case "chic":
+			key = "qcw05_zm";
+			break;
+		case "rpg":
+			key = "usrpg_zm";
+			break;
+		case "m8":
+			key = "xm8_zm";
+			break;
+		case "m16":
+			key = "m16_zm";
+			break;
+		case "remington":
+			key = "870mcs_zm";
+			break;
+		case "oly":
+		case "olympia":
+			key = "rottweil72_zm";
+			break;
+		case "mp5":
+			key = "mp5k_zm";
+			break;
+		case "ak74":
+			key = "ak74u_zm";
+			break;
+		default:
+			key = weapon_str;
+	}
+
+	if (!isDefined(verifier))
+		verifier = ::default_weapon_verification;
+
+	key = [[verifier]](key);
+
+	debug_print("FIRST BOX: weapon_key: " + key);
+	return key;
+}
+
+default_weapon_verification()
+{
+    weapon_key = get_base_weapon_name(weapon_key, 1);
+
+    if (!is_weapon_included(weapon_key))
+        return "";
+
+	return weapon_key;
+}
+
+box_weapon_verification(weapon_key)
+{
+	if (isDefined(level.zombie_weapons[weapon_key]) && level.zombie_weapons[weapon_key].is_in_box)
+		return weapon_key;
+	return "";
+}
+
+weapon_display_wrapper(weapon_key)
+{
+	if (weapon_key == "emp_grenade_zm")
+		return "Emp Grenade";
+	if (weapon_key == "cymbal_monkey_zm")
+		return "Cymbal Monkey";
+	
+	return get_weapon_display_name(weapon_key);
+}
+
+move_chest()
+{
+	level endon("end_game");
+
+    wait 1;
+
+    level.forced_box_location = "start_chest2";
+
+	if (isDefined(level._zombiemode_custom_box_move_logic))
+		kept_move_logic = level._zombiemode_custom_box_move_logic;
+
+	level._zombiemode_custom_box_move_logic = ::force_next_location;
+	foreach(chest in level.chests)
+	{
+		if (!chest.hidden && chest.script_noteworthy == level.forced_box_location)
+			return;
+
+		if (!chest.hidden)
+		{
+			level.chest_min_move_usage = 8;
+
+			flag_set("moving_chest_now");
+			chest thread maps\mp\zombies\_zm_magicbox::treasure_chest_move();
+
+			wait 0.05;
+			level notify("weapon_fly_away_start");
+			wait 0.05;
+			level notify("weapon_fly_away_end");
+			break;
+		}
+	}
+
+	while (flag("moving_chest_now"))
+		wait 0.05;
+
+	if (isDefined(kept_move_logic))
+		level._zombiemode_custom_box_move_logic = kept_move_logic;
+
+	level.chest_min_move_usage = 4;
+	return;
+}
+
+force_next_location()
+{
+	for (b=0; b<level.chests.size; b++)
+	{
+		if (level.chests[b].script_noteworthy == level.forced_box_location)
+			level.chest_index = b;
+	}
+}
 /*
 
 generate_song_split(access_level)
