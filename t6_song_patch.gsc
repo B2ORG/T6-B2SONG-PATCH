@@ -95,38 +95,6 @@ set_dvars()
     setdvar("g_speed", 190);
 }
 
-GetAccessColor()
-{
-    // if (isdefined(level.ACCESS_LEVEL))
-    // {
-    //     if (level.ACCESS_LEVEL == 0)
-    //         return "^2";   // Green
-    //     else if (level.ACCESS_LEVEL == 1)
-    //         return "^3";   // Yellow
-    //     else if (level.ACCESS_LEVEL == 2)
-    //         return "^1";   // Red
-    // }
-    // else
-    //     return "";         // White
-    return "^2";
-}
-
-set_split_color()
-{
-    // if (isdefined(level.ACCESS_LEVEL))
-    // {
-    //     if (level.ACCESS_LEVEL == 0)
-    //         return (0.6, 0.8, 1);   // Blue
-    //     else if (level.ACCESS_LEVEL == 1)
-    //         return (0.6, 0.2, 1);   // Purple
-    //     else if (level.ACCESS_LEVEL == 2)
-    //         return (1, 0.6, 0.6);   // Red
-    // }
-    // else
-    //     return (1, 1, 1);           // White
-    return (0.6, 0.8, 1);   // Blue
-}
-
 timer_main()
 {
     self endon("disconnect");
@@ -167,7 +135,7 @@ song_split(title, trigger)
     split_hud = createserverfontstring("hudsmall" , 1.3);
 	split_hud setPoint("TOPRIGHT", "TOPRIGHT", 0, 150);					
 	split_hud.alpha = 0;
-	split_hud.color = set_split_color();
+	split_hud.color = (0.6, 0.8, 1);
 	split_hud.hidewheninmenu = 1;
 
     level waittill (trigger);
