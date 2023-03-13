@@ -102,7 +102,7 @@ timer_main()
 
     level.songsr_start = int(gettime());
 
-    timer_hud = createserverfontstring("hudsmall" , 1.6);
+    timer_hud = createserverfontstring("default" , 1.6);
 	timer_hud setPoint("TOPRIGHT", "TOPRIGHT", 0, 0);
 	timer_hud.alpha = 1;
 	timer_hud.color = (1, 0.8, 1);
@@ -120,8 +120,7 @@ generate_song_split(access_level)
     {
         level thread song_split(song.title, song.trigger);
 
-        // if (access_level >= 1)
-            level thread song_track(song.item, song.id);
+        level thread song_track(song.item, song.id);
     }
 }
 
@@ -132,7 +131,7 @@ song_split(title, trigger)
 
     // y_offset = 125 + (25 * songs);
 
-    split_hud = createserverfontstring("hudsmall" , 1.3);
+    split_hud = createserverfontstring("default" , 1.3);
 	split_hud setPoint("TOPRIGHT", "TOPRIGHT", 0, 150);					
 	split_hud.alpha = 0;
 	split_hud.color = (0.6, 0.8, 1);
@@ -433,7 +432,7 @@ display_blocker()
     self endon("disconnect");
     level endon("end_game");
 
-    hud_blocker = createserverfontstring("hudsmall" , 1.4);
+    hud_blocker = createserverfontstring("default" , 1.4);
 	hud_blocker setPoint("TOPRIGHT", "TOPRIGHT", 0, 40);
 	hud_blocker.alpha = 1;
 	hud_blocker.color = (1, 0.6, 0.2);
@@ -452,7 +451,7 @@ point_drops()
     self endon("disconnect");
     level endon("end_game");
 
-    hud_points = createserverfontstring("hudsmall" , 1.4);
+    hud_points = createserverfontstring("default" , 1.4);
     hud_points setPoint("TOPRIGHT", "TOPRIGHT", 0, 60);
     hud_points.alpha = 1;
     hud_points.color = (1, 0.6, 0.2);
@@ -468,7 +467,7 @@ point_drops()
 
 attempts_main()
 {
-    attempt_hud = createserverfontstring("hudsmall" , 1.5);
+    attempt_hud = createserverfontstring("default" , 1.5);
     attempt_hud setPoint("TOPRIGHT", "TOPRIGHT", 0, 20);
     attempt_hud.alpha = 1;
     attempt_hud.color = (1, 0.8, 1);
@@ -535,7 +534,7 @@ song_track(label, id)
     self endon("disconnect");
     level endon("end_game");
     
-    tracking_hud = createserverfontstring("hudsmall" , 1.3);
+    tracking_hud = createserverfontstring("default" , 1.3);
 	tracking_hud setPoint("TOPLEFT", "TOPLEFT", 0, id * 20);					
 	tracking_hud.color = (1, 0.8, 1);
 	tracking_hud.hidewheninmenu = 1;
@@ -602,7 +601,7 @@ speed_tracker()
 
     player_thread_black_screen_waiter();
 
-    self.hud_velocity = createfontstring("hudsmall" , 1.4);
+    self.hud_velocity = createfontstring("default" , 1.4);
 	self.hud_velocity setPoint("TOPRIGHT", "TOPRIGHT", 0, 90);
 	self.hud_velocity.alpha = 1;
 	self.hud_velocity.color = (0.4, 1, 0.7);
@@ -619,7 +618,7 @@ speed_tracker()
 
 gspeed_tracker()
 {
-    hud_gspeed = createserverfontstring("hudsmall" , 1.4);
+    hud_gspeed = createserverfontstring("default" , 1.4);
 	hud_gspeed setPoint("TOPRIGHT", "TOPRIGHT", 0, 110);
 	hud_gspeed.alpha = 1;
 	hud_gspeed.color = (0.4, 1, 0.7);
@@ -681,7 +680,7 @@ first_box_info()
             wait 0.25;
         }
 
-        hud_1box = createserverfontstring("hudsmall" , 1.8);
+        hud_1box = createserverfontstring("default" , 1.8);
         hud_1box setPoint("CENTER", "TOP", 0, 25);
         hud_1box.alpha = 0.12;
         hud_1box.color = (0.9, 0, 0);
