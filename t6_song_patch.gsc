@@ -25,7 +25,6 @@ on_player_connect()
 
 	level waittill("initial_players_connected");
     iPrintLn("Song Auto-Timer ^3V" + song_config("version"));
-    // iPrintLn("Access level: " + GetAccessColor() + level.ACCESS_LEVEL);
     set_dvars();
 
     flag_wait("initial_blackscreen_passed");
