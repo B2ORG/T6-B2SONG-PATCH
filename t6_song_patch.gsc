@@ -13,23 +13,23 @@
 
 init()
 {
-    level thread on_player_connect();
-
     level.SONG_TIMING = array();
     level.SONG_TIMING["version"] = 7;
     level.SONG_TIMING["debug"] = true;
+    set_dvars();
+
+    level thread song_main();
+    level thread song_player();
 }
 
-on_player_connect()
+song_main()
 {
-    level thread on_player_joined();
-
 	level waittill("initial_players_connected");
     iPrintLn("Song Auto-Timer ^3V" + song_config("version"));
-    set_dvars();
 
     flag_wait("initial_blackscreen_passed");
     flag_set("game_started");
+
     level thread timer_main();
     level thread generate_song_split(level.ACCESS_LEVEL);
     level thread song_watcher();
@@ -37,34 +37,30 @@ on_player_connect()
     level thread gspeed_tracker();
     level thread point_drops();
 
-    if (isdefined(level.FIRSTBOX_LEGIT) && !level.FIRSTBOX_LEGIT)
-        level thread first_box_protector();
-
-    // level.players[0].score = 50000;
-
-    // if (level.ACESS_LEVEL >= 1)
-    // {
-        level thread condition_tracker();
-    // }
-
-    // if (level.ACCESS_LEVEL >= 2)
-    // {
-        level thread display_blocker();
-    // }
+    level thread first_box_protector();
+    level thread condition_tracker();
+    level thread display_blocker();
 }
 
-on_player_joined()
+song_player()
 {
-    for (;;)
+    while (true)
     {
-	    level waittill("connecting", player );
-
-        player thread award_perma_perks();
-        player thread speed_tracker();
-
-        // if (level.ACCESS_LEVEL >= 1)
-            player thread zone_hud();
+	    level waittill("connected", player );
+        player thread player_thread();
     }
+}
+
+player_thread()
+{
+    self waittill("spawned_player");
+
+    if (is_debug())
+        self.score = 666666;
+
+    player thread award_perma_perks();
+    player thread speed_tracker();
+    player thread zone_hud();
 }
 
 print(arg)
@@ -93,10 +89,9 @@ song_config(key)
 set_dvars()
 {
     flag_init("game_started");
-    
-    // Console values according to Plutonium
+
     setdvar("player_strafespeedscale", 1);
-    setdvar("player_backspeedscale", 0.85);
+    setdvar("player_backspeedscale", 0.9);
     setdvar("g_speed", 190);
 }
 
