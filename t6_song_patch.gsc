@@ -14,10 +14,9 @@
 init()
 {
     level thread on_player_connect();
-    level.ACCESS_LEVEL = 2;
-    level.PATCH_VERSION = 6;
-    level.SONG_AUTO_TIMER_ACTIVE = true;
-    level.FIRSTBOX_LEGIT = false;
+
+    level.SONG_TIMING = array();
+    level.SONG_TIMING["version"] = 7;
 }
 
 on_player_connect()
@@ -25,7 +24,7 @@ on_player_connect()
     level thread on_player_joined();
 
 	level waittill("initial_players_connected");
-    iPrintLn("^3Song Auto-Timer V" + level.PATCH_VERSION);
+    iPrintLn("Song Auto-Timer ^3V" + song_config("version"));
     // iPrintLn("Access level: " + GetAccessColor() + level.ACCESS_LEVEL);
     set_dvars();
 
@@ -66,6 +65,13 @@ on_player_joined()
         // if (level.ACCESS_LEVEL >= 1)
             player thread zone_hud();
     }
+}
+
+song_config(key)
+{
+    if (isDefined(level.SONG_TIMING[key]))
+        return level.SONG_TIMING[key];
+    return false;
 }
 
 set_dvars()
