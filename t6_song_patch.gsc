@@ -17,6 +17,7 @@ init()
 
     level.SONG_TIMING = array();
     level.SONG_TIMING["version"] = 7;
+    level.SONG_TIMING["debug"] = true;
 }
 
 on_player_connect()
@@ -64,6 +65,22 @@ on_player_joined()
         // if (level.ACCESS_LEVEL >= 1)
             player thread zone_hud();
     }
+}
+
+print(arg)
+{}
+
+debug_print(text)
+{
+    if (is_debug())
+        print("DEBUG: " + text);
+}
+
+is_debug()
+{
+    if (song_config("debug"))
+        return true;
+    return false;
 }
 
 song_config(key)
