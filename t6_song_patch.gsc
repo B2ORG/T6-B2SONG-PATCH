@@ -13,62 +13,62 @@
 
 init()
 {
-    level thread OnPlayerConnect();
+    level thread on_player_connect();
     level.ACCESS_LEVEL = 2;
     level.PATCH_VERSION = 6;
     level.SONG_AUTO_TIMER_ACTIVE = true;
     level.FIRSTBOX_LEGIT = false;
 }
 
-OnPlayerConnect()
+on_player_connect()
 {
-    level thread OnPlayerJoined();
+    level thread on_player_joined();
 
 	level waittill("initial_players_connected");
     iPrintLn("^3Song Auto-Timer V" + level.PATCH_VERSION);
     // iPrintLn("Access level: " + GetAccessColor() + level.ACCESS_LEVEL);
-    SetDvars();
+    set_dvars();
 
     flag_wait("initial_blackscreen_passed");
     flag_set("game_started");
-    level thread TimerMain();
-    level thread GenerateSongSplit(level.ACCESS_LEVEL);
-    level thread SongWatcher();
-    level thread AttemptsMain();
-    level thread GspeedTracker();
-    level thread PointDrops();
+    level thread timer_main();
+    level thread generate_song_split(level.ACCESS_LEVEL);
+    level thread song_watcher();
+    level thread attempts_main();
+    level thread gspeed_tracker();
+    level thread point_drops();
 
     if (isdefined(level.FIRSTBOX_LEGIT) && !level.FIRSTBOX_LEGIT)
-        level thread FirstBoxProtector();
+        level thread first_box_protector();
 
     // level.players[0].score = 50000;
 
     // if (level.ACESS_LEVEL >= 1)
     // {
-        level thread ConditionTracker();
+        level thread condition_tracker();
     // }
 
     // if (level.ACCESS_LEVEL >= 2)
     // {
-        level thread DisplayBlocker();
+        level thread display_blocker();
     // }
 }
 
-OnPlayerJoined()
+on_player_joined()
 {
     for (;;)
     {
 	    level waittill("connecting", player );
 
-        player thread AwardPermaPerks();
-        player thread SpeedTracker();
+        player thread award_perma_perks();
+        player thread speed_tracker();
 
         // if (level.ACCESS_LEVEL >= 1)
-            player thread ZoneHud();
+            player thread zone_hud();
     }
 }
 
-SetDvars()
+set_dvars()
 {
     flag_init("game_started");
     
@@ -94,7 +94,7 @@ GetAccessColor()
     return "^2";
 }
 
-SetSplitColor()
+set_split_color()
 {
     // if (isdefined(level.ACCESS_LEVEL))
     // {
@@ -110,7 +110,7 @@ SetSplitColor()
     return (0.6, 0.8, 1);   // Blue
 }
 
-TimerMain()
+timer_main()
 {
     self endon("disconnect");
     level endon("end_game");
@@ -126,21 +126,21 @@ TimerMain()
 	timer_hud setTimerUp(0);
 }
 
-GenerateSongSplit(access_level)
+generate_song_split(access_level)
 {
     level.playing_songs = 0;
     songs = GetMapSongs();
 
     foreach(song in songs)
     {
-        level thread SongSplit(song.title, song.trigger);
+        level thread song_split(song.title, song.trigger);
 
         // if (access_level >= 1)
-            level thread SongTrack(song.item, song.id);
+            level thread song_track(song.item, song.id);
     }
 }
 
-SongSplit(title, trigger)
+song_split(title, trigger)
 {
     self endon("disconnect");
     level endon("end_game");
@@ -150,11 +150,11 @@ SongSplit(title, trigger)
     split_hud = createserverfontstring("hudsmall" , 1.3);
 	split_hud setPoint("TOPRIGHT", "TOPRIGHT", 0, 150);					
 	split_hud.alpha = 0;
-	split_hud.color = SetSplitColor();
+	split_hud.color = set_split_color();
 	split_hud.hidewheninmenu = 1;
 
     level waittill (trigger);
-    sr_timestamp = GetTimeDetailed(level.songsr_start);
+    sr_timestamp = get_time_detailed(level.songsr_start);
     level.playing_songs += 1;
     y_offset = 125 + (25 * level.playing_songs);
 	split_hud setPoint("TOPRIGHT", "TOPRIGHT", 0, y_offset);					
@@ -169,9 +169,9 @@ GetMapSongs(map)
 
     song = array();
 
-    spec_title = GetSpecific(map, "title");
-    spec_trigger = GetSpecific(map, "trigger");
-    spec_items = GetSpecific(map, "item");
+    spec_title = get_specific(map, "title");
+    spec_trigger = get_specific(map, "trigger");
+    spec_items = get_specific(map, "item");
 
     if (spec_title.size != spec_trigger.size)
         return;
@@ -189,7 +189,7 @@ GetMapSongs(map)
     return song;
 }
 
-GetSpecific(map, type)
+get_specific(map, type)
 {
     if (map == "zm_transit")
     {
@@ -205,7 +205,7 @@ GetSpecific(map, type)
         if (type == "title")
             return array("Samantha's Lullaby", "Coming Home", "Re-Damned");
         else if (type == "trigger")
-            return array("meteor_activated", "cominghome_activated", "redamned_activated");
+            return array("meteor_activated", "cominghome_activated", "re_damned_activated");
         else if (type == "item")
             return array("Teddy Bears", "Mannequinns", "Population");
     }
@@ -243,12 +243,12 @@ GetSpecific(map, type)
         else if (type == "trigger")
             return array("archengel_activated", "aether_activated", "shepards_activated");
         else if (type == "item")
-            return array("Meteors", "Plates", "Radios");
+            return array("meteors", "Plates", "Radios");
     }
     return array();
 }
 
-GetTimeDetailed(start_time)
+get_time_detailed(start_time)
 {
     current_time = int(gettime());
     
@@ -297,29 +297,29 @@ GetTimeDetailed(start_time)
 	return "" + minutes + ":" + seconds + "." + getsubstr(miliseconds, 0, 1); 
 }
 
-SongWatcher()
+song_watcher()
 {
     switch (level.script)
     {
         case "zm_transit":
         case "zm_highrise":
         case "zm_buried":
-            level thread Meteor();
+            level thread meteor();
             break;
         case "zm_nuked":
-            level thread NuketownWatcher();
+            level thread nuketown_watcher();
             break;
         case "zm_prison":
-            level thread Meteor();
-            level thread RustyCage();
+            level thread meteor();
+            level thread rusty_cage();
             break;
         case "zm_tomb":
-            level thread OriginsWatcher();
+            level thread origins_watcher();
             break;
     }
 }
 
-Meteor()
+meteor()
 {
     while (true)
     {
@@ -333,10 +333,10 @@ Meteor()
     }
 }
 
-NuketownWatcher()
+nuketown_watcher()
 {
-    level thread ReDamned();
-    level thread Meteor();
+    level thread re_damned();
+    level thread meteor();
 
     while (true)
     {
@@ -350,24 +350,24 @@ NuketownWatcher()
     }
 }
 
-ReDamned()
+re_damned()
 {
     level waittill("magic_door_power_up_grabbed");
     if (level.population_count == 15)
     {
-        // iPrintLn("redamned_activated");
-        level notify ("redamned_activated");
+        // iPrintLn("re_damned_activated");
+        level notify ("re_damned_activated");
     }
 }
 
-RustyCage()
+rusty_cage()
 {
     level waittill ("nixie_" + 935);
     // iPrintLn("johnycash_activated");
     level notify ("wherearewegoing_activated");
 }
 
-OriginsWatcher()
+origins_watcher()
 {
     archengel_checked = false;
     aether_checked = false;
@@ -397,12 +397,12 @@ OriginsWatcher()
     }
 }
 
-ZoneHud()
+zone_hud()
 {
     self endon("disconnect");
     level endon("end_game");
 
-    PlayerThreadBlackscreenWaiter();
+    player_thread_black_screen_waiter();
 
     zone_hud = newClientHudElem(self);
 	zone_hud.alignx = "left";
@@ -443,7 +443,7 @@ ZoneHud()
     }
 }
 
-DisplayBlocker()
+display_blocker()
 {
     self endon("disconnect");
     level endon("end_game");
@@ -462,7 +462,7 @@ DisplayBlocker()
     }
 }
 
-PointDrops()
+point_drops()
 {
     self endon("disconnect");
     level endon("end_game");
@@ -481,7 +481,7 @@ PointDrops()
     }
 }
 
-AttemptsMain()
+attempts_main()
 {
     attempt_hud = createserverfontstring("hudsmall" , 1.5);
     attempt_hud setPoint("TOPRIGHT", "TOPRIGHT", 0, 20);
@@ -500,7 +500,7 @@ AttemptsMain()
     setDvar("song_attempts", getDvarInt("song_attempts") + 1);
 }
 
-ConditionTracker()
+condition_tracker()
 {
     self endon("disconnect");
     level endon("end_game");
@@ -520,7 +520,7 @@ ConditionTracker()
         while (level.script == "zm_prison")
         {
             level.current_count[0] = level.meteor_counter;
-            level.current_count[1] = GetCurrentNixie();
+            level.current_count[1] = get_current_nixie();
             level.current_count[2] = 0;
             wait 0.05;
         }
@@ -545,7 +545,7 @@ ConditionTracker()
     }
 }
 
-SongTrack(label, id)
+song_track(label, id)
 {
     self endon("disconnect");
     level endon("end_game");
@@ -575,7 +575,7 @@ SongTrack(label, id)
     }
 }
 
-GetCurrentNixie()
+get_current_nixie()
 {
     if (!isdefined(level.a_nixie_tube_code) || !isdefined(level.a_nixie_tube_code[3]))
         return "000";
@@ -583,7 +583,7 @@ GetCurrentNixie()
     return "" + level.a_nixie_tube_code[1] + level.a_nixie_tube_code[2] + level.a_nixie_tube_code[3];
 }
 
-AwardPermaPerks()
+award_perma_perks()
 {
     if (level.script != "zm_transit" && level.script != "zm_highrise" && level.script != "zm_buried")
         return;
@@ -610,12 +610,12 @@ AwardPermaPerks()
     return;
 }
 
-SpeedTracker()
+speed_tracker()
 {
     self endon("disconnect");
     level endon("end_game");
 
-    PlayerThreadBlackscreenWaiter();
+    player_thread_black_screen_waiter();
 
     self.hud_velocity = createfontstring("hudsmall" , 1.4);
 	self.hud_velocity setPoint("TOPRIGHT", "TOPRIGHT", 0, 90);
@@ -632,7 +632,7 @@ SpeedTracker()
     }
 }
 
-GspeedTracker()
+gspeed_tracker()
 {
     hud_gspeed = createserverfontstring("hudsmall" , 1.4);
 	hud_gspeed setPoint("TOPRIGHT", "TOPRIGHT", 0, 110);
@@ -651,14 +651,14 @@ GspeedTracker()
     }
 }
 
-PlayerThreadBlackscreenWaiter()
+player_thread_black_screen_waiter()
 {
     while (!flag("game_started"))
         wait 0.05;
     return;
 }
 
-FirstBoxProtector()
+first_box_protector()
 // Yes i know there is ways to bypass that lol
 {
     self endon("disconnect");
@@ -666,20 +666,20 @@ FirstBoxProtector()
 
     level.is_first_box = false;
 
-    self thread FirstBoxInfo();
+    self thread first_box_info();
 
     if (isDefined(level.SONG_1STBOX_ACTIVE) && level.SONG_1STBOX_ACTIVE)
         level.is_first_box = true;
     else
     {
-        self thread ScanInBox();
-        self thread CompareKeys();
+        self thread scan_in_box();
+        self thread compare_keys();
     }
 
     level waittill("end_game");
 }
 
-FirstBoxInfo()
+first_box_info()
 {
     self endon("disconnect");
     level endon("end_game");
@@ -707,7 +707,7 @@ FirstBoxInfo()
     level waittill("end_game");
 }
 
-ScanInBox()
+scan_in_box()
 {
     self endon("disconnect");
     level endon("end_game");
@@ -742,7 +742,7 @@ ScanInBox()
     return;
 }
 
-CompareKeys()
+compare_keys()
 {
     self endon("disconnect");
     level endon("end_game");
