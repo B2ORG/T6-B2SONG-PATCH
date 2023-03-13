@@ -1,15 +1,15 @@
-#include maps/mp/gametypes_zm/_hud_util;
-#include maps/mp/zombies/_zm_utility;
-#include maps/mp/zombies/_zm_stats;
-#include common_scripts/utility;
-#include maps/mp/zm_transit;
-#include maps/mp/zm_nuked_amb;
-#include maps/mp/zm_highrise_amb;
-#include maps/mp/zm_alcatraz_amb;
-#include maps/mp/zm_alcatraz_sq_nixie;
-#include maps/mp/zm_buried_amb;
-#include maps/mp/zm_tomb_amb;
-#include maps/mp/zm_tomb_ee_side;
+#include maps\mp\gametypes_zm\_hud_util;
+#include maps\mp\zombies\_zm_utility;
+#include maps\mp\zombies\_zm_stats;
+#include common_scripts\utility;
+#include maps\mp\zm_transit;
+#include maps\mp\zm_nuked_amb;
+#include maps\mp\zm_highrise_amb;
+#include maps\mp\zm_alcatraz_amb;
+#include maps\mp\zm_alcatraz_sq_nixie;
+#include maps\mp\zm_buried_amb;
+#include maps\mp\zm_tomb_amb;
+#include maps\mp\zm_tomb_ee_side;
 
 init()
 {
@@ -129,7 +129,7 @@ timer_main()
 generate_song_split(access_level)
 {
     level.playing_songs = 0;
-    songs = GetMapSongs();
+    songs = get_map_songs();
 
     foreach(song in songs)
     {
@@ -162,7 +162,7 @@ song_split(title, trigger)
 	split_hud.alpha = 1;
 }
 
-GetMapSongs(map)
+get_map_songs(map)
 {
     if (!isdefined(map))
         map = level.script;
