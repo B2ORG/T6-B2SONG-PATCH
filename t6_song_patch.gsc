@@ -116,6 +116,69 @@ song_config(key)
     return false;
 }
 
+is_town()
+{
+	if (level.script == "zm_transit" && level.scr_zm_map_start_location == "town" && level.scr_zm_ui_gametype_group == "zsurvival")
+		return true;
+	return false;
+}
+
+is_farm()
+{
+	if (level.script == "zm_transit" && level.scr_zm_map_start_location == "farm" && level.scr_zm_ui_gametype_group == "zsurvival")
+		return true;
+	return false;
+}
+
+is_depot()
+{
+	if (level.script == "zm_transit" && level.scr_zm_map_start_location == "transit" && level.scr_zm_ui_gametype_group == "zsurvival")
+		return true;
+	return false;
+}
+
+is_tranzit()
+{
+	if (level.script == "zm_transit" && level.scr_zm_map_start_location == "transit" && level.scr_zm_ui_gametype_group == "zclassic")
+		return true;
+	return false;
+}
+
+is_nuketown()
+{
+	if (level.script == "zm_nuked")
+		return true;
+	return false;
+}
+
+is_die_rise()
+{
+	if (level.script == "zm_highrise")
+		return true;
+	return false;
+}
+
+is_mob()
+{
+	if (level.script == "zm_prison")
+		return true;
+	return false;
+}
+
+is_buried()
+{
+	if (level.script == "zm_buried")
+		return true;
+	return false;
+}
+
+is_origins()
+{
+	if (level.script == "zm_tomb")
+		return true;
+	return false;
+}
+
 set_dvars()
 {
     flag_init("game_started");
