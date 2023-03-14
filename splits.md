@@ -21,7 +21,8 @@ Dynamically each round start
 2. Gondola activation
 
 # Where Are We Going (MOTD)
-1. Last doors open
+1. Opening laundry zone
+2. Last doors open
 
 # Always Running (Buried)
 1. Reaching floor level of bank area
