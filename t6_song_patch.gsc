@@ -1276,7 +1276,7 @@ setup_songs()
 	setup_song("cominghome", "zm_nuked", ::nuketown_tracker_wrapper2, ::progress_mannequins, true, array("CLEAR MID", "CLEAR GREEN ZONE", "CLEAR YELLOW ZONE"));
 	setup_song("damned", "zm_nuked", ::nuketown_tracker_wrapper3, ::progress_population, false, array("ROUND", "RE-DAMNED"), ::eval_split_both);
 	setup_song("fall", "zm_highrise", ::dierise_tracker_wrapper, ::progress_meteors, false, array("FIRST TEDDY", "SECOND TEDDY", "THIRD TEDDY"));
-	setup_song("wawg", "zm_prison", ::motd_tracker_wrapper1, false, array("ENTER SHOWERS", "ENTER TUNNELS", "WHERE ARE WE GOING"));
+	setup_song("wawg", "zm_prison", ::motd_tracker_wrapper1, undefined, false, array("ENTER SHOWERS", "ENTER TUNNELS", "WHERE ARE WE GOING"));
 	setup_song("rusty", "zm_prison", ::motd_tracker_wrapper2, ::progress_meteors, false, array("SECOND BOTTLE", "GONDOLA START", "RUSTY CAGE"));
 	setup_song("alwaysrunning", "zm_buried", ::buried_tracker_wrapper, ::progress_meteors, false, array("ENTER BANK", "SECOND TEDDY", "ALWAYS RUNNING"));
 	setup_song("archangel", "zm_tomb", ::origins_tracker_wrapper1, ::progress_meteors, false, array("FIRST DOOR", "SECOND DOOR", "ENTER NML", "ARCHANGEL"));
@@ -1347,6 +1347,8 @@ split_handler(num_of_splits, custom)
 	for (s = 0; s < num_of_splits; s++)
 	{
 		self waittill("split", index, data);
+
+		debug_print("split_handler(): trigger 'split' received with index " + index);
 
 		last_split = self [[self.split_generator]](index, s);
 
