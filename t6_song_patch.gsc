@@ -44,6 +44,9 @@ song_main()
     if (is_nuketown())
         level thread move_chest();
 
+	if (is_debug() && is_origins())
+		level thread clear_sound_lock();
+
     /*
     level thread generate_song_split(level.ACCESS_LEVEL);
     level thread song_watcher();
@@ -1252,6 +1255,23 @@ award_permaperk(stat_name, perk_code, stat_value)
 
 	self.stats_this_frame[stat_name] = 1;
 	self set_global_stat(stat_name, stat_value);
+}
+
+clear_sound_lock()
+{
+	level endon("end_game");
+	
+	while(true)
+	{
+		if (level.music_override)
+		{
+			wait 5;
+			iPrintLn("DEBUG: ^1CLEARED MUSIC_OVERRIDE");
+			level.music_override = 0;
+		}
+
+		wait 0.1;
+	}
 }
 
 
