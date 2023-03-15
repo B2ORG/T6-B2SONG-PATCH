@@ -1,5 +1,5 @@
 # Carrion (Tranzit)
-1. Placing the turbine down
+1. As soon as depot is open
 2. 2nd teddy bear
 
 # Samantha's Lullaby (Nuketown)

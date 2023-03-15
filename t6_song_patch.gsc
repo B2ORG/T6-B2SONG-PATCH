@@ -1,15 +1,8 @@
 #include maps\mp\gametypes_zm\_hud_util;
+#include common_scripts\utility;
 #include maps\mp\zombies\_zm_utility;
 #include maps\mp\zombies\_zm_stats;
-#include common_scripts\utility;
-#include maps\mp\zm_transit;
-#include maps\mp\zm_nuked_amb;
-#include maps\mp\zm_highrise_amb;
-#include maps\mp\zm_alcatraz_amb;
-#include maps\mp\zm_alcatraz_sq_nixie;
-#include maps\mp\zm_buried_amb;
-#include maps\mp\zm_tomb_amb;
-#include maps\mp\zm_tomb_ee_side;
+#include maps\mp\zombies\_zm_zonemgr;
 
 init()
 {
@@ -18,6 +11,11 @@ init()
     level.SONG_TIMING["debug"] = true;
     level.SONG_TIMING["hud_right_pos"] = 30;
     level.SONG_TIMING["allow_firstbox"] = true;
+	level.SONG_TIMING["limit"] = 2;
+	level.SONG_TIMING["position"] = array();
+	level.SONG_TIMING["position"]["1"] = -20;
+	level.SONG_TIMING["position"]["2"] = 160;
+
     set_dvars();
 
     level thread song_main();
@@ -26,6 +24,8 @@ init()
 
 song_main()
 {
+	level endon("end_game");
+
 	level waittill("initial_players_connected");
     iPrintLn("Song Auto-Timer ^3V" + song_config("version"));
 
@@ -34,6 +34,8 @@ song_main()
 
     flag_wait("initial_blackscreen_passed");
     flag_set("game_started");
+
+	level thread song_timing();
 
     song_hud();
     level thread first_box_handler();
@@ -56,6 +58,8 @@ song_main()
 
 song_player()
 {
+	level endon("end_game");
+
     while (true)
     {
 	    level waittill("connected", player );
@@ -65,6 +69,9 @@ song_player()
 
 player_thread()
 {
+	level endon("end_game");
+	self endon("disconnect");
+
     self waittill("spawned_player");
 
     if (is_debug())
@@ -73,9 +80,10 @@ player_thread()
     if (is_tranzit() || is_die_rise() || is_buried())
         self.account_value = level.bank_account_max;
 
-    // self thread award_perma_perks();
     self thread velocity_meter();
     self thread zone_hud();
+	// if (is_debug())
+	// 	self thread get_my_coordinates();
 }
 
 song_hud()
@@ -89,6 +97,9 @@ song_hud()
     level thread generate_sign(0, "POINT DROP", ::eval_point_drop);
     level thread generate_sign(125, "FIRST BOX", ::eval_first_box);
 }
+
+
+/*						UTILITIES						*/
 
 print(arg)
 {}
@@ -108,6 +119,8 @@ is_debug()
 
 player_thread_black_screen_waiter()
 {
+	level endon("end_game");
+
     while (!flag("game_started"))
         wait 0.05;
     return;
@@ -230,6 +243,8 @@ allert(content, value)
 
 generate_sign(x_pos, text, toggle_on_func, toggle_off_func)
 {
+	level endon("end_game");
+
     sign = createserverfontstring("objective" , 1.6);
     sign setPoint("TOP", "TOP", x_pos, -30);
     sign.hidewheninmenu = 1;
@@ -270,6 +285,8 @@ sign_light_off()
 
 hud_color_watcher(hud)
 {
+	level endon("end_game");
+
     // Prevent having to select color every restart
     if (getDvar("hud_color_state") != "")
     {
@@ -338,6 +355,48 @@ eval_color(message)
                 return [[level.SONG_EXTRA_HUD_COLORS]](message);
             return;
     }
+}
+
+draw_song(split, songcode)
+{
+	posy = song_config("position")["" + level.activated_songs];
+
+	if (level.activated_songs > 2)
+	{
+		iPrintLn("^1CANNOT DISPLAY MORE THAN 2 SONGS!");
+		return;
+	}
+
+	song_head = createserverfontstring("objective", 1.7);
+	song_head setpoint("TOPLEFT", "TOPLEFT", -40, posy);
+	song_head.color = (1, 1, 1);
+	song_head.alpha = 1;
+	song_head setText(get_song_title(songcode));
+
+	song_time = createserverfontstring("big", 1.9);
+	song_time setpoint("TOPLEFT", "TOPLEFT", -40, posy + 20);
+	song_time.color = (1, 1, 1);
+	song_time.alpha = 1;
+	song_time setText("^3" + split.time_readable);
+
+    thread hud_color_watcher(song_head);
+	// song_time doesn't have color watcher on purpose
+}
+
+draw_split(split, num_of_splits)
+{
+	posy = song_config("position")["" + level.activated_songs] + 20;
+
+	if (level.activated_songs > 2)
+		return;
+
+	split_hud = createserverfontstring("default", 1.5);
+	split_hud setpoint("TOPLEFT", "TOPLEFT", -40, posy + (num_of_splits * 20));
+	split_hud.color = (1, 1, 1);
+	split_hud.alpha = 1;
+	split_hud setText(split.message);
+
+    thread hud_color_watcher(split_hud);
 }
 
 game_timer()
@@ -527,6 +586,8 @@ eval_first_box()
 
 gspeed_watcher()
 {
+	level endon("end_game");
+
     while (true)
     {
         if (getDvarInt("g_speed") != 190)
@@ -536,6 +597,89 @@ gspeed_watcher()
         }
         wait 0.05;
     }
+}
+
+get_time_detailed(start_time)
+{
+    current_time = int(gettime());
+    
+    miliseconds = (current_time - start_time) + 50; // +50 for rounding
+    minutes = 0;
+    seconds = 0;
+
+	if( miliseconds > 995 )
+	{
+		seconds = int( miliseconds / 1000 );
+
+		miliseconds = int( miliseconds * 1000 ) % ( 1000 * 1000 );
+		miliseconds = miliseconds * 0.001; 
+
+		if( seconds > 59 )
+		{
+			minutes = int( seconds / 60 );
+			seconds = int( seconds * 1000 ) % ( 60 * 1000 );
+			seconds = seconds * 0.001;
+		}
+	}
+
+    minutes = Int(minutes);
+    if (minutes == 0)
+        minutes = "00";
+	else if(minutes < 10)
+		minutes = "0" + minutes; 
+
+	seconds = Int(seconds); 
+    if (seconds == 0)
+        seconds = "00";
+	else if(seconds < 10)
+		seconds = "0" + seconds; 
+
+	miliseconds = Int(miliseconds); 
+	if( miliseconds == 0 )
+		miliseconds = "000";
+	else if( miliseconds < 100 )
+		miliseconds = "0" + miliseconds;
+
+	return "" + minutes + ":" + seconds + "." + getsubstr(miliseconds, 0, 1); 
+}
+
+number_as_string(num, upper)
+{
+	switch (num)
+	{
+		case "0":
+		case 0:
+			if (upper)
+				return "ZERO";
+			return "zero";
+		case "1":
+		case 1:
+			if (upper)
+				return "FIRST";
+			return "first";
+		case "2":
+		case 2:
+			if (upper)
+				return "SECOND";
+			return "second";
+		case "3":
+		case 3:
+			if (upper)
+				return "THIRD";
+			return "third";
+		case "4":
+		case 4:
+			if (upper)
+				return "FOURTH";
+			return "fourth";
+		case "5":
+		case 5:
+			if (upper)
+				return "FIFTH";
+			return "fifth";
+		default:
+			return num;
+	}
 }
 
 first_box_handler()
@@ -1109,6 +1253,641 @@ award_permaperk(stat_name, perk_code, stat_value)
 	self.stats_this_frame[stat_name] = 1;
 	self set_global_stat(stat_name, stat_value);
 }
+
+
+/*						CORE						*/
+
+
+song_timing()
+{
+	level.song_start_timestamp = getTime();
+	level.activated_songs = 0;
+	setup_songs();
+	start_tracking();
+	level thread song_display();
+}
+
+setup_songs()
+{
+	level.songs = array();
+	level.splits = array();
+	setup_song("carrion", "zm_transit", ::transit_tracker_wrapper, ::progress_meteors, false, array("OPEN DEPOT", "SECOND TEDDY", "CARRION"));
+	setup_song("lullaby", "zm_nuked", ::nuketown_tracker_wrapper1, ::progress_meteors, false, array("2ND FLOOR YELLOW HOUSE", "GREEN HOUSE", "SAMANTHA'S LULLABY"));
+	setup_song("cominghome", "zm_nuked", ::nuketown_tracker_wrapper2, ::progress_mannequins, true, array("CLEAR MID", "CLEAR GREEN ZONE", "CLEAR YELLOW ZONE"));
+	setup_song("damned", "zm_nuked", ::nuketown_tracker_wrapper3, ::progress_population, false, array("ROUND", "RE-DAMNED"), ::eval_split_both);
+	setup_song("fall", "zm_highrise", ::dierise_tracker_wrapper, ::progress_meteors, false, array("FIRST TEDDY", "SECOND TEDDY", "THIRD TEDDY"));
+	setup_song("wawg", "zm_prison", ::motd_tracker_wrapper1, false, array("ENTER SHOWERS", "ENTER TUNNELS", "WHERE ARE WE GOING"));
+	setup_song("rusty", "zm_prison", ::motd_tracker_wrapper2, ::progress_meteors, false, array("SECOND BOTTLE", "GONDOLA START", "RUSTY CAGE"));
+	setup_song("alwaysrunning", "zm_buried", ::buried_tracker_wrapper, ::progress_meteors, false, array("ENTER BANK", "SECOND TEDDY", "ALWAYS RUNNING"));
+	setup_song("archangel", "zm_tomb", ::origins_tracker_wrapper1, ::progress_meteors, false, array("FIRST DOOR", "SECOND DOOR", "ENTER NML", "ARCHANGEL"));
+	setup_song("aether", "zm_tomb", ::origins_tracker_wrapper2, ::progress_plates, false, array("FIRST DOOR", "SECOND DOOR", "OPEN GEN5", "AETHER"));
+	setup_song("shepherd", "zm_tomb", ::origins_tracker_wrapper3, ::progress_radios, false, array("ENTER NML", "FIRST RADIO", "SECOND RADIO", "SHEPHERD OF FIRE"));
+}
+
+start_tracking()
+{
+	i = 0;
+	foreach(song in level.songs)
+	{
+		if (song.map == level.script)
+		{
+			song thread [[song.display_progress]](i);
+			song thread [[song.progress_tracking]]();
+			i++;
+		}
+	}
+}
+
+song_display()
+{
+	level endon("end_game");
+
+	level waittill("song_done", song_code);
+
+	wait 0.05;
+
+	level.activated_songs++;
+
+	splits = array_reverse(level.splits[song_code]);
+
+	for (i = 0; i < splits.size; i++)
+	{
+		if (i == 0)
+			draw_song(splits[i], song_code);
+		else
+			draw_split(splits[i], i);
+	}
+}
+
+setup_song(code, map, progress_func, display_func, secret_splits, list_splits, split_func)
+{
+	if (!isDefined(split_func))
+		split_func = ::eval_split;
+
+	song = spawnStruct();
+	song.code = code;
+	song.title = get_song_title(code);
+	song.map = map;
+	song.progress_tracking = progress_func;
+	song.display_progress = display_func;
+	song.secret_splits = secret_splits;
+	song.splits = list_splits;
+	song.split_generator = split_func;
+
+	level.songs[level.songs.size] = song;
+}
+
+split_handler(num_of_splits, custom)
+{
+	level endon("end_game");
+	level endon("song_done");
+
+	level.splits[self.code] = array();
+
+	for (s = 0; s < num_of_splits; s++)
+	{
+		self waittill("split", index, data);
+
+		last_split = self [[self.split_generator]](index, s);
+
+		if (!self.secret_splits)
+			iPrintLn(last_split.message);
+		else if (is_debug())
+			iPrintLn("[THIS WILL BE HIDDEN] " + last_split.message);
+
+		if (isDefined(custom))
+			self [[custom]](index);
+	}
+
+	level notify("song_done", self.code);
+}
+
+transit_tracker_wrapper()
+{
+	self thread track_zone(0, array("zone_pri2", "zone_station_ext"), undefined, true);
+	self thread track_item(1, 2);
+	self thread track_item(1, 3);
+	self thread split_handler(3);
+}
+
+nuketown_tracker_wrapper1()
+{
+	self thread track_zone(0, array("openhouse2_f2_zone"), ::yellowhouse_bounds);
+	self thread track_zone(1, array("openhouse1_f1_zone", "openhouse1_f2_zone"), ::greenhouse_bounds);
+	self thread track_item(2, 3);
+	self thread split_handler(3);
+}
+
+nuketown_tracker_wrapper2()
+{
+	mid_zones = array("culdesac_yellow_zone", "culdesac_green_zone", "truck_zone", "culdesac_2_truck");
+	green_zones = array("openhouse1_f1_zone", "openhouse1_f2_zone", "openhouse1_backyard_zone");
+	yellow_zones = array("openhouse2_f1_zone", "openhouse2_f2_zone", "openhouse2_backyard_zone", "ammo_door_zone");
+
+	self.heads_off_in_zone = array();
+	self thread track_mannequins(0, mid_zones, "mid");
+	self thread track_mannequins(1, green_zones, "green");
+	self thread track_mannequins(2, yellow_zones, "yellow");
+	self thread split_handler(3);
+}
+
+nuketown_tracker_wrapper3()
+{
+	self thread track_rounds(0);
+	self thread track_clock(1);
+	self thread split_handler(255, ::notify_on_1);
+}
+
+dierise_tracker_wrapper()
+{
+	self thread track_item(0);
+	self thread split_handler(3);
+}
+
+motd_tracker_wrapper1()
+{
+	self thread track_zone(0, array("cellblock_shower"));
+	self thread track_zone(1, array("zone_citadel_stairs"));
+	self thread track_notification(2, "level", "nixie_935");
+	self thread split_handler(3);
+}
+
+motd_tracker_wrapper2()
+{
+	self thread track_item(0, 2);
+	self thread track_notification(1, "flag", "gondola_moving");
+	self thread track_item(2, 3);
+	self thread split_handler(3);
+}
+
+buried_tracker_wrapper()
+{
+	self thread track_zone(0, array("zone_bank"), ::eval_bank_floor);
+	self thread track_item(1, 2);
+	self thread track_item(2, 3);
+	self thread split_handler(3);
+}
+
+origins_tracker_wrapper1()
+{
+	self thread track_zone(0, array("zone_bunker_1a", "zone_bunker_2a"), undefined, true);
+	self thread track_zone(0, array("zone_bunker_4a", "zone_bunker_3a"), undefined, true);
+	self thread track_zone(0, array("zone_nml_2a"));
+	self thread track_item(3, 3);
+	self thread split_handler(4);
+}
+
+origins_tracker_wrapper2()
+{
+	self thread track_zone(0, array("zone_bunker_1a", "zone_bunker_2a"), undefined, true);
+	self thread track_zone(0, array("zone_bunker_4a", "zone_bunker_3a"), undefined, true);
+	self thread track_zone(0, array("zone_nml_farm"), undefined, true);
+	self thread track_item(3, 3, self.code);
+	self thread split_handler(4);
+}
+
+origins_tracker_wrapper3()
+{
+	self thread track_zone(0, array("zone_nml_2a"));
+	self thread track_item(1, 1, self.code);
+	self thread track_item(2, 2, self.code);
+	self thread track_item(3, 3, self.code);
+	self thread split_handler(4);
+}
+
+track_item(split_index, notify_after_x_activations, meta)
+{
+	level endon("end_game");
+
+	if (!isDefined(meta))
+	{
+		while (!isDefined(level.meteor_counter))
+			wait 0.05;
+
+		if (isDefined(notify_after_x_activations))
+		{
+			while (level.meteor_counter < notify_after_x_activations)
+				wait 0.05;
+		}
+		else
+		{
+			state = 0;
+			while (true)
+			{
+				if (level.meteor_counter != state)
+				{
+					self notify("split", split_index, level.meteor_counter);
+					state = level.meteor_counter;
+				}
+
+				wait 0.05;
+			}
+		}
+
+		self notify("split", split_index, level.meteor_counter);
+	}
+	else if (meta == "aether")
+	{
+		while (!isDefined(level.snd115count))
+			wait 0.05;
+
+		if (isDefined(notify_after_x_activations))
+		{
+			while (level.snd115count < notify_after_x_activations)
+				wait 0.05;
+		}
+		else
+		{
+			state = 0;
+			while (true)
+			{
+				if (level.snd115count != state)
+				{
+					self notify("split", split_index, level.snd115count);
+					state = level.snd115count;
+				}
+
+				wait 0.05;
+			}
+		}
+
+		self notify("split", split_index, level.snd115count);
+	}
+
+	else if (meta == "shepherd")
+	{
+		while (!isDefined(level.found_ee_radio_count))
+			wait 0.05;
+
+		if (isDefined(notify_after_x_activations))
+		{
+			while (level.found_ee_radio_count < notify_after_x_activations)
+				wait 0.05;
+		}
+		else
+		{
+			state = 0;
+			while (true)
+			{
+				if (level.found_ee_radio_count != state)
+				{
+					self notify("split", split_index, level.found_ee_radio_count);
+					state = level.found_ee_radio_count;
+				}
+
+				wait 0.05;
+			}
+		}
+
+		self notify("split", split_index, level.found_ee_radio_count);
+	}
+}
+
+track_zone(split_index, zone_names, eval_func, eval_activity)
+{
+	level endon("end_game");
+
+	debug_print("track_zone(): split_index=" + split_index + " / eval_func=" + isDefined(eval_func));
+
+	break_out = false;
+	while (!break_out)
+	{
+		if (isDefined(eval_activity) && eval_activity)
+		{
+			foreach(zone in zone_names)
+			{
+				if (isinarray(get_active_zone_names(), zone))
+				{
+					if (isDefined(eval_func) && ![[eval_func]]())
+						continue;
+
+					self notify("split", split_index, true);
+					break_out = true;
+					break;
+				}
+			}
+		}
+		else
+		{
+			foreach(player in level.players)
+			{
+				if (isinarray(zone_names, player get_current_zone()))
+				{
+					if (isDefined(eval_func) && ![[eval_func]](player))
+						continue;
+
+					self notify("split", split_index, player);
+					break_out = true;
+					break;
+				}
+			}
+		}
+
+		wait 0.05;
+	}
+}
+
+track_mannequins(split_index, zone_collection, zone_code)
+{
+	level endon("end_game");
+
+	destructibles = getentarray("destructible", "targetname");
+	mannequins = array();
+	self.heads_off_in_zone[zone_code] = 0;
+	
+	for (i = 0; i < destructibles.size; i++)
+	{
+		if (issubstr(destructibles[i].destructibledef, "male"))
+		{
+			foreach(zone in zone_collection)
+			{
+				if (destructibles[i] entity_in_zone(zone, true))
+				{
+					debug_print("track_mannequins(): mannequinn of origin " + destructibles[i].origin + " found in zone " + zone + " and is being assigned to " + zone_code);
+					mannequins[mannequins.size] = destructibles[i];
+				}
+			}
+		}
+	}
+
+	foreach(mann in mannequins)
+		self thread wait_for_destruction(mann, zone_code);
+
+	while (self.heads_off_in_zone[zone_code] != mannequins.size)
+		wait 0.05;
+
+	self notify("split", split_index, zone_code);
+}
+
+wait_for_destruction(ent, zone_code)
+{
+	level endon("end_game");
+
+	ent waittill("broken");
+	self.heads_off_in_zone[zone_code]++;
+}
+
+track_clock(split_index)
+{
+	level endon("end_game");
+
+	level waittill("magic_door_power_up_grabbed");
+    if (level.population_count == 15 && level.music_override == 0)
+		self notify("split", split_index, true);
+}
+
+track_rounds(split_index, round_number)
+{
+	level endon("end_game");
+
+	if (isDefined(round_number))
+	{
+		while (level.round_number < round_number)
+			wait 0.05;
+		level waittill("start_of_round");
+
+		self notify("split", split_index, level.round_number);
+		return;
+	}
+
+	while (true)
+	{
+		level waittill("start_of_round");
+
+		if (level.round_number == 1)
+			continue;
+
+		self notify("split", split_index, level.round_number);
+	}
+}
+
+track_notification(split_index, type, trigger)
+{
+	level endon("end_game");
+
+	switch (type)
+	{
+		case "flag":
+			flag_wait(trigger);
+			break;
+		case "level":
+			level waittill(trigger);
+			break;
+		default:
+			type waittill(trigger);
+	}
+
+	self notify("split", split_index, trigger);
+}
+
+eval_bank_floor(player)
+{
+	if (player.origin[2] > 0 && player.origin[2] < 25)
+		return true;
+	return false;
+}
+
+eval_split(split_index, stub)
+{
+	split = spawnStruct();
+	split.time = getTime();
+	split.text = self.splits[split_index];
+	split.time_readable = get_time_detailed(level.song_start_timestamp);
+	split.message = split.text + ": ^3" + split.time_readable;
+
+	level.splits[self.code][level.splits[self.code].size] = split;
+	return split;
+}
+
+eval_split_both(split_index, split_number)
+{
+	split = spawnStruct();
+	split.time = getTime();
+	if (split_index == 0)
+		split.text = self.splits[0] + " " + (split_number + 1);
+	else
+		split.text = self.splits[1];
+	split.time_readable = get_time_detailed(level.song_start_timestamp);
+	split.message = split.text + ": ^3" + split.time_readable;
+
+	level.splits[self.code][level.splits[self.code].size] = split;
+	return split;
+}
+
+notify_on_1(index)
+{
+	if (index == 1)
+		level notify("song_done", self.code);
+}
+
+yellowhouse_bounds(player)
+{
+	if (player.origin[0] > 600 && player.origin[2] > 79)
+		return true;
+	return false;
+}
+
+greenhouse_bounds(player)
+{
+	if (player.origin[0] < -490 && player.origin[1] > 251)
+		return true;
+	return false;
+}
+
+get_song_title(code)
+{
+	switch (code)
+	{
+		case "carrion":
+			return "CARRION";
+		case "lullaby":
+			return "SAMANTHA'S LULLABY";
+		case "cominghome":
+			return "COMING HOME";
+		case "damned":
+			return "RE-DAMNED";
+		case "fall":
+			return "WE ALL FALL DOWN";
+		case "rusty":
+			return "RUSTY CAGE";
+		case "wawg":
+			return "WHERE ARE WE GOING";
+		case "alwaysrunning":
+			return "ALWAYS RUNNING";
+		case "archangel":
+			return "ARCHANGEL";
+		case "aether":
+			return "AETHER";
+		case "shepherd":
+			return "SHEPHERD OF FIRE";
+		default:
+			return "UNKNOWN SONG";
+	}
+}
+
+progress_hud(pos_multi)
+{
+	progress_hud = createserverfontstring("objective" , 1);
+	progress_hud setPoint("TOPRIGHT", "TOPRIGHT", song_config("hud_right_pos"), 90 + (15 * pos_multi));
+	progress_hud.color = (1, 1, 1);
+	progress_hud.alpha = 0;
+
+	return progress_hud;
+}
+
+progress_meteors(pos_multi)
+{
+	level endon("end_game");
+
+	progress_hud = progress_hud(pos_multi);
+	switch (self.code)
+	{
+		case "carrion":
+		case "lullaby":
+		case "fall":
+		case "alwaysrunning":
+			progress_hud.label = &"TEDDY BEARS: ^3";
+			break;
+		case "rusty":
+			progress_hud.label = &"BOTTLES: ^3";
+			break;
+		case "archangel":
+			progress_hud.label = &"METEORS: ^3";
+			break;
+		default:
+			progress_hud.label = &"GOAL: ^3";
+	}
+	progress_hud setValue(0);
+	progress_hud.alpha = 1;
+
+	while (!isDefined(level.meteor_counter))
+		wait 0.05;
+
+	while (true)
+	{
+		progress_hud setValue(level.meteor_counter);
+		wait 0.05;
+	}
+}
+
+progress_mannequins(pos_multi)
+{
+	level endon("end_game");
+
+	progress_hud = progress_hud(pos_multi);
+	progress_hud.label = &"MANNEQUINS: ^3";
+	progress_hud setValue(28);
+	progress_hud.alpha = 1;
+
+	while (!isDefined(level.mannequin_count))
+		wait 0.05;
+
+	while (true)
+	{
+		progress_hud setValue(level.mannequin_count);
+		wait 0.05;
+	}
+}
+
+progress_population(pos_multi)
+{
+	level endon("end_game");
+
+	progress_hud = progress_hud(pos_multi);
+	progress_hud.label = &"POPULATION: ^3";
+	progress_hud setValue(100);
+	progress_hud.alpha = 1;
+
+	while (!isDefined(level.population_count))
+		wait 0.05;
+
+	while (true)
+	{
+		progress_hud setValue(level.population_count);
+		wait 0.05;
+	}
+}
+
+progress_plates(pos_multi)
+{
+	level endon("end_game");
+
+	progress_hud = progress_hud(pos_multi);
+	progress_hud.label = &"NUMBER PLATES: ^3";
+	progress_hud setValue(0);
+	progress_hud.alpha = 1;
+
+	while (!isDefined(level.snd115count))
+		wait 0.05;
+
+	progress_hud.alpha = 1;
+	while (true)
+	{
+		progress_hud setValue(level.snd115count);
+		wait 0.05;
+	}
+}
+
+progress_radios(pos_multi)
+{
+	level endon("end_game");
+
+	progress_hud = progress_hud(pos_multi);
+	progress_hud.label = &"RADIOS: ^3";
+	progress_hud setValue(0);
+	progress_hud.alpha = 1;
+
+	while (!isDefined(level.found_ee_radio_count))
+		wait 0.05;
+
+	progress_hud.alpha = 1;
+	while (true)
+	{
+		progress_hud setValue(level.found_ee_radio_count);
+		wait 0.05;
+	}
+}
+
 /*
 
 generate_song_split(access_level)
@@ -2662,4 +3441,46 @@ translate_zone(zone)
 	}
 
 	return name;
+}
+
+get_my_coordinates()
+{
+	level endon("end_game");
+	self endon("disconnect");
+
+	player_thread_black_screen_waiter();
+
+    self.coordinates_x_hud = createfontstring("objective" , 1.1);
+	self.coordinates_x_hud setpoint("CENTER", "BOTTOM", -40, 10);
+	self.coordinates_x_hud.alpha = 0.66;
+	self.coordinates_x_hud.color = (1, 1, 1);
+	self.coordinates_x_hud.hidewheninmenu = 0;
+
+    self.coordinates_y_hud = createfontstring("objective" , 1.1);
+	self.coordinates_y_hud setpoint("CENTER", "BOTTOM", 0, 10);
+	self.coordinates_y_hud.alpha = 0.66;
+	self.coordinates_y_hud.color = (1, 1, 1);
+	self.coordinates_y_hud.hidewheninmenu = 0;
+
+    self.coordinates_z_hud = createfontstring("objective" , 1.1);
+	self.coordinates_z_hud setpoint("CENTER", "BOTTOM", 40, 10);
+	self.coordinates_z_hud.alpha = 0.66;
+	self.coordinates_z_hud.color = (1, 1, 1);
+	self.coordinates_z_hud.hidewheninmenu = 0;
+
+	while (true)
+	{
+		self.coordinates_x_hud setValue(naive_round(self.origin[0]));
+		self.coordinates_y_hud setValue(naive_round(self.origin[1]));
+		self.coordinates_z_hud setValue(naive_round(self.origin[2]));
+
+		wait 0.05;
+	}
+}
+
+// Yes it's not super accurate, it doesn't have to be
+naive_round(floating_point)
+{
+	floating_point = int(floating_point * 1000);
+	return floating_point / 1000;
 }
