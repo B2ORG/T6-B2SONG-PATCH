@@ -1478,6 +1478,7 @@ track_item(split_index, notify_after_x_activations, meta)
 				{
 					self notify("split", split_index, level.meteor_counter);
 					state = level.meteor_counter;
+					split_index++;
 				}
 
 				wait 0.05;
