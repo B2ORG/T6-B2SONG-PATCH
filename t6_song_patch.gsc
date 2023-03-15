@@ -12,9 +12,7 @@ init()
     level.SONG_TIMING["hud_right_pos"] = 30;
     level.SONG_TIMING["allow_firstbox"] = true;
 	level.SONG_TIMING["limit"] = 2;
-	level.SONG_TIMING["position"] = array();
-	level.SONG_TIMING["position"]["1"] = -20;
-	level.SONG_TIMING["position"]["2"] = 160;
+	level.SONG_TIMING["split_hud"] = get_split_hud_properties();
 
     set_dvars();
 
@@ -134,6 +132,34 @@ song_config(key)
     if (isDefined(level.SONG_TIMING[key]))
         return level.SONG_TIMING[key];
     return false;
+}
+
+get_split_hud_properties()
+{
+	properties = array();
+
+	switch (level.script)
+	{
+		case "zm_transit":
+		case "zm_highrise":
+		case "zm_prison":
+		case "zm_buried":
+			properties["ypos"] = -20;
+			properties["optimize"] = false;
+			break;
+		case "zm_nuked":
+			properties["ypos"] = -20;
+			properties["optimize"] = true;
+			break;
+		case "zm_tomb":
+			properties["ypos"] = 40;
+			properties["optimize"] = true;
+			break;
+		default:
+			debug_print("get_split_hud_properties(): Could not get hud properties for map '" + level.script + "'");
+	}
+
+	return properties;
 }
 
 is_town()
@@ -362,22 +388,30 @@ eval_color(message)
 
 draw_song(split, songcode)
 {
-	posy = song_config("position")["" + level.activated_songs];
+	posy = song_config("split_hud")["ypos"];
 
-	if (level.activated_songs > 2)
+	increment = 140;
+	s_increment = 18;
+	textscale = 1.7;
+	if (song_config("split_hud")["optimize"])
 	{
-		iPrintLn("^1CANNOT DISPLAY MORE THAN 2 SONGS!");
-		return;
+		textscale = 1.3;
+		increment = 80;
+		s_increment = 12;
 	}
 
-	song_head = createserverfontstring("objective", 1.7);
+	posy += level.activated_songs * increment;
+
+	debug_print("draw_song(): drawing song " + songcode + " on posy " + posy);
+
+	song_head = createserverfontstring("objective", textscale);
 	song_head setpoint("TOPLEFT", "TOPLEFT", -40, posy);
 	song_head.color = (1, 1, 1);
 	song_head.alpha = 1;
 	song_head setText(get_song_title(songcode));
 
-	song_time = createserverfontstring("big", 1.9);
-	song_time setpoint("TOPLEFT", "TOPLEFT", -40, posy + 20);
+	song_time = createserverfontstring("big", textscale + 0.2);
+	song_time setpoint("TOPLEFT", "TOPLEFT", -40, posy + s_increment);
 	song_time.color = (1, 1, 1);
 	song_time.alpha = 1;
 	song_time setText("^3" + split.time_readable);
@@ -388,13 +422,23 @@ draw_song(split, songcode)
 
 draw_split(split, num_of_splits)
 {
-	posy = song_config("position")["" + level.activated_songs] + 20;
+	increment = 160;
+	s_increment = 20;
+	textscale = 1.5;
+	if (song_config("split_hud")["optimize"])
+	{
+		textscale = 1.2;
+		increment = 80;
+		s_increment = 15;
+	}
 
-	if (level.activated_songs > 2)
-		return;
+	posy = song_config("split_hud")["ypos"] + s_increment;
+	posy += (level.activated_songs * increment) + (num_of_splits * s_increment);
 
-	split_hud = createserverfontstring("default", 1.5);
-	split_hud setpoint("TOPLEFT", "TOPLEFT", -40, posy + (num_of_splits * 20));
+	debug_print("draw_split(): drawing split nr " + num_of_splits + " on posy " + posy);
+	
+	split_hud = createserverfontstring("default", textscale);
+	split_hud setpoint("TOPLEFT", "TOPLEFT", -40, posy);
 	split_hud.color = (1, 1, 1);
 	split_hud.alpha = 1;
 	split_hud setText(split.message);
@@ -1323,20 +1367,25 @@ song_display()
 {
 	level endon("end_game");
 
-	level waittill("song_done", song_code);
-
-	wait 0.05;
-
-	level.activated_songs++;
-
-	splits = array_reverse(level.splits[song_code]);
-
-	for (i = 0; i < splits.size; i++)
+	while (true)
 	{
-		if (i == 0)
-			draw_song(splits[i], song_code);
-		else
-			draw_split(splits[i], i);
+		level waittill("song_done", song_code);
+
+		debug_print("song_display(): Trigger 'song_done' received. song_code='" + song_code + "' activated_songs='" + level.activated_songs + "'");
+
+		wait 0.05;
+
+		splits = array_reverse(level.splits[song_code]);
+
+		for (i = 0; i < splits.size; i++)
+		{
+			if (i == 0)
+				draw_song(splits[i], song_code);
+			else
+				draw_split(splits[i], i);
+		}
+
+		level.activated_songs++;
 	}
 }
 
@@ -1361,7 +1410,6 @@ setup_song(code, map, progress_func, display_func, secret_splits, list_splits, s
 split_handler(num_of_splits, custom)
 {
 	level endon("end_game");
-	level endon("song_done");
 
 	level.splits[self.code] = array();
 
@@ -1376,7 +1424,7 @@ split_handler(num_of_splits, custom)
 		if (!self.secret_splits)
 			iPrintLn(last_split.message);
 		else if (is_debug())
-			iPrintLn("[THIS WILL BE HIDDEN] " + last_split.message);
+			iPrintLn("^1[THIS WILL BE HIDDEN] ^7" + last_split.message);
 
 		if (isDefined(custom))
 			self [[custom]](index);
