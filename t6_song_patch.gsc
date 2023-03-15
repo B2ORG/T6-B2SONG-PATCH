@@ -1415,7 +1415,7 @@ motd_tracker_wrapper1()
 motd_tracker_wrapper2()
 {
 	self thread track_item(0, 2);
-	self thread track_notification(1, "flag", "gondola_moving");
+	self thread track_notification(1, "level", "gondola_moving");
 	self thread track_item(2, 3);
 	self thread split_handler(3);
 }
