@@ -1279,7 +1279,8 @@ setup_songs()
 	setup_song("wawg", "zm_prison", ::motd_tracker_wrapper1, undefined, false, array("ENTER SHOWERS", "ENTER TUNNELS", "WHERE ARE WE GOING"));
 	setup_song("rusty", "zm_prison", ::motd_tracker_wrapper2, ::progress_meteors, false, array("SECOND BOTTLE", "GONDOLA START", "RUSTY CAGE"));
 	setup_song("alwaysrunning", "zm_buried", ::buried_tracker_wrapper, ::progress_meteors, false, array("ENTER BANK", "SECOND TEDDY", "ALWAYS RUNNING"));
-	setup_song("archangel", "zm_tomb", ::origins_tracker_wrapper1, ::progress_meteors, false, array("FIRST DOOR", "SECOND DOOR", "ENTER NML", "ARCHANGEL"));
+	/* Splits are hidden for archangel to prevent duplicated iprintlns */
+	setup_song("archangel", "zm_tomb", ::origins_tracker_wrapper1, ::progress_meteors, true, array("FIRST DOOR", "SECOND DOOR", "ENTER NML", "ARCHANGEL"));
 	setup_song("aether", "zm_tomb", ::origins_tracker_wrapper2, ::progress_plates, false, array("FIRST DOOR", "SECOND DOOR", "OPEN GEN5", "AETHER"));
 	setup_song("shepherd", "zm_tomb", ::origins_tracker_wrapper3, ::progress_radios, false, array("ENTER NML", "FIRST RADIO", "SECOND RADIO", "SHEPHERD OF FIRE"));
 }
@@ -1433,8 +1434,8 @@ buried_tracker_wrapper()
 origins_tracker_wrapper1()
 {
 	self thread track_zone(0, array("zone_bunker_1a", "zone_bunker_2a"), undefined, true);
-	self thread track_zone(0, array("zone_bunker_4a", "zone_bunker_3a"), undefined, true);
-	self thread track_zone(0, array("zone_nml_2a"));
+	self thread track_zone(1, array("zone_bunker_4a", "zone_bunker_3a"), undefined, true);
+	self thread track_zone(2, array("zone_nml_2a"));
 	self thread track_item(3, 3);
 	self thread split_handler(4);
 }
@@ -1442,8 +1443,8 @@ origins_tracker_wrapper1()
 origins_tracker_wrapper2()
 {
 	self thread track_zone(0, array("zone_bunker_1a", "zone_bunker_2a"), undefined, true);
-	self thread track_zone(0, array("zone_bunker_4a", "zone_bunker_3a"), undefined, true);
-	self thread track_zone(0, array("zone_nml_farm"), undefined, true);
+	self thread track_zone(1, array("zone_bunker_4a", "zone_bunker_3a"), undefined, true);
+	self thread track_zone(2, array("zone_nml_farm"), undefined, true);
 	self thread track_item(3, 3, self.code);
 	self thread split_handler(4);
 }
