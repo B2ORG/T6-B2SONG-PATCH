@@ -44,17 +44,6 @@ song_main()
 
 	if (is_debug())
 		level thread clear_sound_lock();
-
-    /*
-    level thread generate_song_split(level.ACCESS_LEVEL);
-    level thread song_watcher();
-    level thread attempts_main();
-    level thread point_drops();
-
-    level thread first_box_protector();
-    level thread condition_tracker();
-    level thread display_blocker();
-    */
 }
 
 song_player()
