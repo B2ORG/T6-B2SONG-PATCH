@@ -1304,6 +1304,12 @@ setup_songs()
 
 start_tracking()
 {
+	level.progress_meteor = true;
+	level.progress_mannequin = true;
+	level.progress_population = true;
+	level.progress_plates = true;
+	level.progress_radios = true;
+
 	i = 0;
 	foreach(song in level.songs)
 	{
@@ -1337,6 +1343,8 @@ song_display()
 			else
 				draw_split(splits[i], i);
 		}
+
+		toggle_tracking_off(song_code);
 
 		level.activated_songs++;
 	}
@@ -1385,6 +1393,35 @@ split_handler(num_of_splits, custom)
 	}
 
 	level notify("song_done", self.code);
+}
+
+toggle_tracking_off(code)
+{
+	switch (code)
+	{
+		case "carrion":
+		case "lullaby":
+		case "fall":
+		case "rusty":
+		case "alwaysrunning":
+		case "archangel":
+			level.progress_meteor = false;
+			break;
+		case "cominghome":
+			level.progress_mannequin = false;
+			break;
+		case "damned":
+			level.progress_population = false;
+			break;
+		case "aether":
+			level.progress_plates = false;
+			break;
+		case "shepherd":
+			level.progress_radios = false;
+			break;
+		default:
+			debug_print("toggle_tracking_off(): unknown code " + code);
+	}
 }
 
 transit_tracker_wrapper()
@@ -1834,11 +1871,15 @@ progress_meteors(pos_multi)
 	while (!isDefined(level.meteor_counter))
 		wait 0.05;
 
-	while (true)
+	while (level.progress_meteor)
 	{
 		progress_hud setValue(level.meteor_counter);
 		wait 0.05;
 	}
+
+	progress_hud.alpha = 0;
+	progress_hud fadeOverTime(1);
+	progress_hud delete();
 }
 
 progress_mannequins(pos_multi)
@@ -1853,11 +1894,15 @@ progress_mannequins(pos_multi)
 	while (!isDefined(level.mannequin_count))
 		wait 0.05;
 
-	while (true)
+	while (level.progress_mannequin)
 	{
 		progress_hud setValue(level.mannequin_count);
 		wait 0.05;
 	}
+
+	progress_hud.alpha = 0;
+	progress_hud fadeOverTime(1);
+	progress_hud delete();
 }
 
 progress_population(pos_multi)
@@ -1872,11 +1917,15 @@ progress_population(pos_multi)
 	while (!isDefined(level.population_count))
 		wait 0.05;
 
-	while (true)
+	while (level.progress_population)
 	{
 		progress_hud setValue(level.population_count);
 		wait 0.05;
 	}
+
+	progress_hud.alpha = 0;
+	progress_hud fadeOverTime(1);
+	progress_hud delete();
 }
 
 progress_plates(pos_multi)
@@ -1891,12 +1940,15 @@ progress_plates(pos_multi)
 	while (!isDefined(level.snd115count))
 		wait 0.05;
 
-	progress_hud.alpha = 1;
-	while (true)
+	while (level.progress_plates)
 	{
 		progress_hud setValue(level.snd115count);
 		wait 0.05;
 	}
+
+	progress_hud.alpha = 0;
+	progress_hud fadeOverTime(1);
+	progress_hud delete();
 }
 
 progress_radios(pos_multi)
@@ -1911,12 +1963,15 @@ progress_radios(pos_multi)
 	while (!isDefined(level.found_ee_radio_count))
 		wait 0.05;
 
-	progress_hud.alpha = 1;
-	while (true)
+	while (level.progress_radios)
 	{
 		progress_hud setValue(level.found_ee_radio_count);
 		wait 0.05;
 	}
+
+	progress_hud.alpha = 0;
+	progress_hud fadeOverTime(1);
+	progress_hud delete();
 }
 
 give_up_show_mannequins()
