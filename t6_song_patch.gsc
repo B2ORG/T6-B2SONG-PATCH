@@ -13,6 +13,7 @@ init()
     level.SONG_TIMING["allow_firstbox"] = true;
 	level.SONG_TIMING["limit"] = 2;
 	level.SONG_TIMING["split_hud"] = get_split_hud_properties();
+	level.SONG_TIMING["randomize_color"] = false;
 
     set_dvars();
 
@@ -26,9 +27,6 @@ song_main()
 
 	level waittill("initial_players_connected");
     iPrintLn("Song Auto-Timer ^3V" + song_config("version"));
-
-    // Add custom player colors with this
-    level.SONG_EXTRA_HUD_COLORS = undefined;
 
     flag_wait("initial_blackscreen_passed");
     flag_set("game_started");
@@ -89,6 +87,10 @@ player_thread()
 
 song_hud()
 {
+	level.hud_color = (1, 1, 1);
+	if (song_config("randomize_color"))
+		level.hud_color = get_random_hud_color();
+
     level thread game_timer();
     level thread round_timer();
     level thread attempts_hud();
@@ -338,78 +340,30 @@ sign_light_off()
     self.alpha = 0.1;
 }
 
-hud_color_watcher(hud)
+get_random_hud_color(override)
 {
-	level endon("end_game");
+	/*
+	colors = array();
+	colors["red"] = (1, 0, 0);
+	colors["green"] = (0, 1, 0);
+	colors["blue"] = (0, 0, 1);
+	colors["orange"] = (1, 0.5, 0);
+	colors["yellow"] = (1, 1, 0);
+	colors["light green"] = (0.5, 1, 0);
+	colors["mint"] = (0, 1, 0.5);
+	colors["cyan"] = (0, 1, 1);
+	colors["light blue"] = (0, 0.5, 1);
+	colors["purple"] = (0.5, 0, 1);
+	colors["light pink"] = (1, 0, 1);
+	colors["pink"] = (1, 0, 0.5);
+	colors["white"] = (1, 1, 1);
+	*/
+	colors = array((1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 0.5, 0), (1, 1, 0), (0.5, 1, 0), (0, 1, 0.5), (0, 1, 1), (0, 0.5, 1), (0.5, 0, 1), (1, 0, 1), (1, 0, 0.5), (1, 1, 1));
 
-    // Prevent having to select color every restart
-    if (getDvar("hud_color_state") != "")
-    {
-        color = eval_color(getDvar("hud_color_state"));
-        if (isDefined(color))
-            hud.color = color;
-    }
+    if (isDefined(override) && isDefined(colors[override]))
+		return colors[override];
 
-    while (true)
-    {
-        level waittill("say", message, player);
-
-        // Player threaded hud changes for each player separately
-        if (self is_player() && self != player)
-            continue;
-
-        if (isSubStr(message, "hud"))
-        {
-            color_str = strTok(message, " ")[1];
-            color = eval_color(color_str);
-        }
-
-        if (!isDefined(color))
-            continue;
-
-        setDvar("hud_color_state", color_str);
-        hud.color = color;
-    }
-}
-
-eval_color(message)
-{
-    if (!isDefined(message))
-        return;
-
-    switch (message)
-    {
-        case "red":
-            return (1, 0, 0);
-        case "green":
-            return (0, 1, 0);
-        case "blue":
-            return (0, 0, 1);
-        case "orange":
-            return (1, 0.5, 0);
-        case "yellow":
-            return (1, 1, 0);
-        case "light green":
-            return (0.5, 1, 0);
-        case "mint":
-            return (0, 1, 0.5);
-        case "cyan":
-            return (0, 1, 1);
-        case "light blue":
-            return (0, 0.5, 1);
-        case "purple":
-            return (0.5, 0, 1);
-        case "light pink":
-            return (1, 0, 1);
-        case "pink":
-            return (1, 0, 0.5);
-        case "white":
-            return (1, 1, 1);
-        default:
-            if (isDefined(level.SONG_EXTRA_HUD_COLORS))
-                return [[level.SONG_EXTRA_HUD_COLORS]](message);
-            return;
-    }
+	return colors[randomIntRange(0, colors.size)];
 }
 
 draw_song(split, songcode)
@@ -435,8 +389,6 @@ draw_song(split, songcode)
 	song_head.color = (1, 1, 1);
 	song_head.alpha = 1;
 	song_head setText(get_song_title(songcode) + "\n^3" + split.time_readable);
-
-    thread hud_color_watcher(song_head);
 }
 
 draw_split(split, num_of_splits)
@@ -461,8 +413,6 @@ draw_split(split, num_of_splits)
 	split_hud.color = (1, 1, 1);
 	split_hud.alpha = 1;
 	split_hud setText(split.message);
-
-    thread hud_color_watcher(split_hud);
 }
 
 game_timer()
@@ -475,10 +425,9 @@ game_timer()
     timer_hud = createserverfontstring("big" , 1.6);
 	timer_hud setPoint("TOPRIGHT", "TOPRIGHT", song_config("hud_right_pos"), 0);
 	timer_hud.alpha = 1;
-	timer_hud.color = (1, 1, 1);
+	timer_hud.color = level.hud_color;
 
 	timer_hud setTimerUp(0);
-    thread hud_color_watcher(timer_hud);
 }
 
 round_timer()
@@ -487,10 +436,8 @@ round_timer()
 
 	round_hud = createserverfontstring("big" , 1.6);
 	round_hud setPoint("TOPRIGHT", "TOPRIGHT", song_config("hud_right_pos"), 16);
-	round_hud.color = (1, 1, 1);
+	round_hud.color = level.hud_color;
 	round_hud.alpha = 0;
-
-    thread hud_color_watcher(round_hud);
 
 	while (true)
 	{
@@ -554,8 +501,6 @@ zone_hud()
 	self.zone_hud.color = (1, 1, 1);
 	self.zone_hud.hidewheninmenu = 1;
     self.zone_hud settext("");
-
-    self thread hud_color_watcher(self.zone_hud);
 
     while (true)
     {
