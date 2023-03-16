@@ -118,6 +118,27 @@ is_debug()
     return false;
 }
 
+force_restart(reason, waittime)
+{
+	level endon("end_game");
+
+	if (isDefined(reason))
+		iPrintLn(reason);
+
+	if (isDefined(waittime))
+		wait waittime;
+
+	if (getDvar("song_attempts") != "" && getDvarInt("song_attempts") > 0)
+		setDvar("song_attempts", getDvarInt("song_attempts") - 1);
+
+	wait 0.05;
+
+	if (is_plutonium())
+		map_restart();
+	else
+		level notify("end_game");
+}
+
 player_thread_black_screen_waiter()
 {
 	level endon("end_game");
@@ -254,8 +275,11 @@ allert(content, value)
         case "gspeed":
             message = "MODIFIED GSPEED";
             break;
+		case "mannequin":
+			message = "MANNEQUINS UNVEILED";
+			break;
         default:
-            message = "";
+            message = content;
     }
 
     allert = createserverfontstring("default" , 1.4);
@@ -1189,18 +1213,7 @@ watch_permaperk_award()
 		}
 
 		if (i == present_players && flag("permaperks_were_set"))
-		{
-			iPrintLn("Permaperks Awarded: ^1RESTART REQUIRED");
-			wait 1;
-
-            if (getDvar("song_attempts") != "")
-                setDvar("song_attempts", getDvarInt("song_attempts") - 1);
-
-			if (is_plutonium())
-				map_restart();
-			else
-				level notify("end_game");
-		}
+			force_restart("Permaperks Awarded: ^1RESTART REQUIRED", 1);
 
 		if (level.round_number > 2)
 			break;
@@ -1338,7 +1351,7 @@ setup_songs()
 	setup_song("carrion", "zm_transit", ::transit_tracker_wrapper, ::progress_meteors, false, array("OPEN DEPOT", "SECOND TEDDY", "CARRION"));
 	setup_song("lullaby", "zm_nuked", ::nuketown_tracker_wrapper1, ::progress_meteors, false, array("2ND FLOOR YELLOW HOUSE", "GREEN HOUSE", "SAMANTHA'S LULLABY"));
 	setup_song("cominghome", "zm_nuked", ::nuketown_tracker_wrapper2, ::progress_mannequins, true, array("CLEAR MID", "CLEAR GREEN ZONE", "CLEAR YELLOW ZONE"));
-	setup_song("damned", "zm_nuked", ::nuketown_tracker_wrapper3, ::progress_population, false, array("ROUND", "RE-DAMNED"), ::eval_split_both);
+	setup_song("damned", "zm_nuked", ::nuketown_tracker_wrapper3, ::progress_population, false, array("END OF ROUND 2", "END OF ROUND 4", "RE-DAMNED"));
 	setup_song("fall", "zm_highrise", ::dierise_tracker_wrapper, ::progress_meteors, false, array("FIRST TEDDY", "SECOND TEDDY", "THIRD TEDDY"));
 	setup_song("wawg", "zm_prison", ::motd_tracker_wrapper1, undefined, false, array("ENTER SHOWERS", "ENTER TUNNELS", "WHERE ARE WE GOING"));
 	setup_song("rusty", "zm_prison", ::motd_tracker_wrapper2, ::progress_meteors, false, array("SECOND BOTTLE", "GONDOLA START", "RUSTY CAGE"));
@@ -1417,7 +1430,8 @@ split_handler(num_of_splits, custom)
 	{
 		self waittill("split", index, data);
 
-		debug_print("split_handler(): trigger 'split' received with index " + index);
+		if (isDefined(data))
+			debug_print("split_handler(): trigger 'split' received with index='" + index + "' data='" + data + "'");
 
 		last_split = self [[self.split_generator]](index, s);
 
@@ -1426,8 +1440,8 @@ split_handler(num_of_splits, custom)
 		else if (is_debug())
 			iPrintLn("^1[THIS WILL BE HIDDEN] ^7" + last_split.message);
 
-		if (isDefined(custom))
-			self [[custom]](index);
+		if (isDefined(custom) && [[custom]](self, index, data))
+			break;
 	}
 
 	level notify("song_done", self.code);
@@ -1451,22 +1465,28 @@ nuketown_tracker_wrapper1()
 
 nuketown_tracker_wrapper2()
 {
-	mid_zones = array("culdesac_yellow_zone", "culdesac_green_zone", "truck_zone", "culdesac_2_truck");
+	mid_zones = array("culdesac_yellow_zone", "culdesac_green_zone", "truck_zone"/*, "culdesac_2_truck"*/);
 	green_zones = array("openhouse1_f1_zone", "openhouse1_f2_zone", "openhouse1_backyard_zone");
 	yellow_zones = array("openhouse2_f1_zone", "openhouse2_f2_zone", "openhouse2_backyard_zone", "ammo_door_zone");
 
 	self.heads_off_in_zone = array();
+	self.mannequins = array();
+	self.mannequin_detected = 0;
 	self thread track_mannequins(0, mid_zones, "mid");
 	self thread track_mannequins(1, green_zones, "green");
 	self thread track_mannequins(2, yellow_zones, "yellow");
 	self thread split_handler(3);
+
+	thread give_up_show_mannequins();
+	self thread debug_controller();
+
 }
 
 nuketown_tracker_wrapper3()
 {
 	self thread track_rounds(0);
-	self thread track_clock(1);
-	self thread split_handler(255, ::notify_on_1);
+	self thread track_clock(2);
+	self thread split_handler(3);
 }
 
 dierise_tracker_wrapper()
@@ -1664,7 +1684,7 @@ track_mannequins(split_index, zone_collection, zone_code)
 	level endon("end_game");
 
 	destructibles = getentarray("destructible", "targetname");
-	mannequins = array();
+	self.mannequins[zone_code] = array();
 	self.heads_off_in_zone[zone_code] = 0;
 	
 	for (i = 0; i < destructibles.size; i++)
@@ -1675,17 +1695,23 @@ track_mannequins(split_index, zone_collection, zone_code)
 			{
 				if (destructibles[i] entity_in_zone(zone, true))
 				{
-					debug_print("track_mannequins(): mannequinn of origin " + destructibles[i].origin + " found in zone " + zone + " and is being assigned to " + zone_code);
-					mannequins[mannequins.size] = destructibles[i];
+					debug_print("track_mannequins(): [" + self.mannequin_detected + "] mannequinn '" + destructibles[i].destructibledef + "' of origin '" + destructibles[i].origin + "' found in zone '" + zone + "' and is being assigned to '" + zone_code + "'");
+					self.mannequins[zone_code][self.mannequins[zone_code].size] = destructibles[i];
+					self.mannequin_detected++;
 				}
 			}
 		}
 	}
 
-	foreach(mann in mannequins)
-		self thread wait_for_destruction(mann, zone_code);
+	debug_print(self.mannequins[zone_code].size + " mannequins found for zone " + zone_code);
 
-	while (self.heads_off_in_zone[zone_code] != mannequins.size)
+	foreach(mann in self.mannequins[zone_code])
+	{
+		self thread wait_for_destruction(mann, zone_code);
+		mann thread mannequinn_debugger();
+	}
+
+	while (self.heads_off_in_zone[zone_code] != self.mannequins[zone_code].size)
 		wait 0.05;
 
 	self notify("split", split_index, zone_code);
@@ -1696,6 +1722,7 @@ wait_for_destruction(ent, zone_code)
 	level endon("end_game");
 
 	ent waittill("broken");
+	ent.is_broken = true;
 	self.heads_off_in_zone[zone_code]++;
 }
 
@@ -1704,33 +1731,24 @@ track_clock(split_index)
 	level endon("end_game");
 
 	level waittill("magic_door_power_up_grabbed");
-    if (level.population_count == 15 && level.music_override == 0)
-		self notify("split", split_index, true);
+    if (level.population_count == 15)
+	{
+		debug_print("track_clock(): notifying");
+		self notify("split", split_index, level.population_count);
+	}
+	debug_print("track_clock(): trigger received");
 }
 
-track_rounds(split_index, round_number)
+track_rounds(split_index)
 {
 	level endon("end_game");
 
-	if (isDefined(round_number))
-	{
-		while (level.round_number < round_number)
-			wait 0.05;
-		level waittill("start_of_round");
-
-		self notify("split", split_index, level.round_number);
-		return;
-	}
-
-	while (true)
-	{
-		level waittill("start_of_round");
-
-		if (level.round_number == 1)
-			continue;
-
-		self notify("split", split_index, level.round_number);
-	}
+	level waittill("end_of_round");
+	level waittill("end_of_round");
+	self notify("split", split_index, level.round_number);
+	level waittill("end_of_round");
+	level waittill("end_of_round");
+	self notify("split", split_index + 1, level.round_number);
 }
 
 track_notification(split_index, type, trigger)
@@ -1786,10 +1804,11 @@ eval_split_both(split_index, split_number)
 	return split;
 }
 
-notify_on_1(index)
+notify_on_1(song, index, data)
 {
 	if (index == 1)
-		level notify("song_done", self.code);
+		return true;
+	return false;
 }
 
 yellowhouse_bounds(player)
@@ -1958,6 +1977,62 @@ progress_radios(pos_multi)
 		progress_hud setValue(level.found_ee_radio_count);
 		wait 0.05;
 	}
+}
+
+give_up_show_mannequins()
+{
+	level endon("end_game");
+
+	while (true)
+	{
+		level waittill("say", text, player);
+
+		if (text == "fuckit")
+		{
+			iPrintLn("^1" + player.name + " ^7has given up");
+			allert("mannequin");
+			level notify("unveil_mannequins");
+		}
+		break;
+	}
+}
+
+mannequinn_debugger()
+{
+	level endon("end_game");
+
+	level waittill("unveil_mannequins");
+
+	if (is_true(self.is_broken))
+		return;
+
+    hud_elem = newhudelem();
+    hud_elem.x = self.origin[0];
+    hud_elem.y = self.origin[1];
+    hud_elem.z = self.origin[2] + 30;
+    hud_elem.alpha = 1;
+    hud_elem.archived = 1;
+    hud_elem setshader("waypoint_revive", 5, 5);
+    hud_elem setwaypoint(1);
+    hud_elem.hidewheninmenu = 1;
+    hud_elem.immunetodemogamehudsettings = 1;
+
+	self waittill("broken");
+	hud_elem.alpha = 0;
+	hud_elem destroy();
+}
+
+debug_controller()
+{
+	level endon("end_game");
+
+	if (!is_debug())
+		return;
+
+	while (level.mannequin_count > 5)
+		wait 0.05;
+
+	level notify("unveil_mannequins");
 }
 
 /*

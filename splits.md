@@ -10,7 +10,8 @@
 Split into 3 main zones, time 2 first zones as splits, splits are hidden until song is active
 
 # Re-Damned (Nuketown)
-Dynamically each round start
+1. End of round 2
+2. End of round 4
 
 # We All Fall Down (Die Rise)
 1. 1st bear
