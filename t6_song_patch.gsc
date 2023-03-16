@@ -16,6 +16,7 @@ init()
 	level.SONG_TIMING["limit"] = 2;
 	level.SONG_TIMING["split_hud"] = get_split_hud_properties();
 	level.SONG_TIMING["randomize_color"] = false;
+	level.SONG_TIMING["leaderboards_enabled"] = true;
 
     set_dvars();
 
@@ -124,12 +125,10 @@ welcome_prints()
 	wait 0.75;
     iPrintLn("Source: ^3github.com/Zi0MIX/T6-SONG-TIMER-PATCH");
 
-	if (isDefined(level.SONG_LEADERBOARD))
+	if (leaderboards_enabled())
 	{
 		wait 0.75;
-		iPrintLn("Leaderboard updated on: ^1"+ level.SONG_LEADERBOARD["date"]);
-		wait 0.75;
-		iPrintLn("By: ^1" + level.SONG_LEADERBOARD["update_by"]);
+		iPrintLn("Leaderboard updated on: ^1"+ level.SONG_LEADERBOARD["date"] + " ^7by ^1" + level.SONG_LEADERBOARD["update_by"]);
 	}
 }
 
@@ -138,6 +137,13 @@ is_debug()
     if (song_config("debug"))
         return true;
     return false;
+}
+
+leaderboards_enabled()
+{
+	if (song_config("leaderboards_enabled") && isDefined(level.SONG_LEADERBOARD))
+		return true;
+	return false;
 }
 
 force_restart(reason, waittime)
@@ -2070,10 +2076,10 @@ show_wr(index)
 {
 	level endon("end_game");
 
-	if (!isDefined(level.SONG_LEADERBOARD))
+	if (!leaderboards_enabled())
 		return;
 
-	debug_print(self.code + " trying to show WR");
+	// debug_print(self.code + " trying to show WR");
 
 	waittime = index / 10;
 	wait waittime;
@@ -2084,17 +2090,22 @@ show_wr(index)
 	time = level.SONG_LEADERBOARD[self.code][str_playersize]["wr"];
 	players = level.SONG_LEADERBOARD[self.code][str_playersize]["player"];
 
-	debug_print("show_wr(" + index + "): are defined time, players " + isDefined(time) + ", " + isDefined(players));
-	debug_print("show_wr(" + index + "): time='" + time + "' players='" + players + "'");
+	// debug_print("show_wr(" + index + "): are defined time='" + isDefined(time) + "' players='" + isDefined(players) + "' playerindex-isstring='" + (isDefined(str_playersize) && isstring(str_playersize)) + "'");
+	// debug_print("show_wr(" + index + "): time='" + time + "' players='" + players + "'");
 
-	wrhud = createserverfontstring("objective", 1.7);
+	if (!isDefined(time) || !isDefined(players))
+		debug_print("show_wr(): are defined: time=" + isDefined(time) + " players=" + players);
+
+	wrhud = createserverfontstring("big", 1.7);
 	wrhud setPoint("TOPLEFT", "TOPLEFT", -40, posy);
 	wrhud.color = (1, 1, 1);
+	wrhud.alpha = 0;
 	wrhud setText("WR " + get_song_title(self.code) + ": ^1" + get_time_detailed(0, time));
 
 	wrbyhud = createserverfontstring("objective", 1.2);
 	wrbyhud setPoint("TOPLEFT", "TOPLEFT", -40, posy + 19);
 	wrbyhud.color = (1, 1, 1);
+	wrbyhud.alpha = 0;
 	wrbyhud setText("BY: ^1" + players);
 
 	level.printed_wrs++;
@@ -2104,7 +2115,7 @@ show_wr(index)
 	wrhud.alpha = 1;
 	wrbyhud.alpha = 1;
 
-	wait 5 - waittime;
+	wait 7 - waittime;
 
 	wrhud FadeOverTime(1);
 	wrbyhud FadeOverTime(1);

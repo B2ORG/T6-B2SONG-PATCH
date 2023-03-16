@@ -1,3 +1,16 @@
+/*
+To update records, go to the function representing song that's to be updated
+Function naming scheme is "wr_" plus name of the song separated with underscores
+Inside of a function, there is a "switch" statement, inside of which you'll find cases
+Each case represents number of players, so "case 2:" representing 2 players for example
+Update values in correct case, update wr with the amount of second (for example 107.5 is 1:47.5)
+Update player with name of the player
+Make sure value in "player" is enclosed in double quotes, and value in "wr" isn't
+Both lines have to end with semicollon
+After updating, please go to get_song_leaderboard() function definition, find lines that say lb["date"] and lb["update_by"] and change values inside of double quotes accordingly
+Help in official song sr discord https://discord.gg/8ugeuytEAm or Zi0#1063
+*/
+
 main()
 {
     thread safe_init();
@@ -8,68 +21,42 @@ safe_init()
     level.SONG_LEADERBOARD = get_song_leaderboard();
 }
 
+print(stub)
+{}
+
 get_song_leaderboard()
 {
     lb = array();
     lb["date"] = "March 17th 2023";
     lb["update_by"] = "Zi0";
-    lb["carrion"] = wr_carrion(1);
-    lb["carrion"] = wr_carrion(2);
-    lb["carrion"] = wr_carrion(3);
-    lb["carrion"] = wr_carrion(4);
-    lb["lullaby"] = wr_samanthas_lullaby(1);
-    lb["lullaby"] = wr_samanthas_lullaby(2);
-    lb["lullaby"] = wr_samanthas_lullaby(3);
-    lb["lullaby"] = wr_samanthas_lullaby(4);
-    lb["cominghome"] = wr_coming_home(1);
-    lb["cominghome"] = wr_coming_home(2);
-    lb["cominghome"] = wr_coming_home(3);
-    lb["cominghome"] = wr_coming_home(4);
-    lb["damned"] = wr_re_damned(1);
-    lb["damned"] = wr_re_damned(2);
-    lb["damned"] = wr_re_damned(3);
-    lb["damned"] = wr_re_damned(4);
-    lb["fall"] = wr_we_all_fall_down(1);
-    lb["fall"] = wr_we_all_fall_down(2);
-    lb["fall"] = wr_we_all_fall_down(3);
-    lb["fall"] = wr_we_all_fall_down(4);
-    lb["wawg"] = wr_where_are_we_going(1);
-    lb["wawg"] = wr_where_are_we_going(2);
-    lb["wawg"] = wr_where_are_we_going(3);
-    lb["wawg"] = wr_where_are_we_going(4);
-    lb["rusty"] = wr_rusty_cage(1);
-    lb["rusty"] = wr_rusty_cage(2);
-    lb["rusty"] = wr_rusty_cage(3);
-    lb["rusty"] = wr_rusty_cage(4);
-    lb["alwaysrunning"] = wr_always_running(1);
-    lb["alwaysrunning"] = wr_always_running(2);
-    lb["alwaysrunning"] = wr_always_running(3);
-    lb["alwaysrunning"] = wr_always_running(4);
-    lb["arachangel"] = wr_archangel(1);
-    lb["arachangel"] = wr_archangel(2);
-    lb["arachangel"] = wr_archangel(3);
-    lb["arachangel"] = wr_archangel(4);
-    lb["aether"] = wr_aether(1);
-    lb["aether"] = wr_aether(2);
-    lb["aether"] = wr_aether(3);
-    lb["aether"] = wr_aether(4);
-    lb["shepherd"] = wr_shepherd(1);
-    lb["shepherd"] = wr_shepherd(2);
-    lb["shepherd"] = wr_shepherd(3);
-    lb["shepherd"] = wr_shepherd(4);
+
+    for (i = 1; i < 5; i++)
+    {
+        lb["carrion"]["" + i] = wr_carrion(i);
+        lb["lullaby"]["" + i] = wr_samanthas_lullaby(i);
+        lb["cominghome"]["" + i] = wr_coming_home(i);
+        lb["damned"]["" + i] = wr_re_damned(i);
+        lb["fall"]["" + i] = wr_we_all_fall_down(i);
+        lb["wawg"]["" + i] = wr_where_are_we_going(i);
+        lb["rusty"]["" + i] = wr_rusty_cage(i);
+        lb["alwaysrunning"]["" + i] = wr_always_running(i);
+        lb["archangel"]["" + i] = wr_archangel(i);
+        lb["aether"]["" + i] = wr_aether(i);
+        lb["shepherd"]["" + i] = wr_shepherd(i);
+    }
 
     return lb;
 }
 
-return_data(num, wr, player)
+return_data(wr, player)
 {
     if (!isDefined(wr) || !isDefined(player))
         return undefined;
 
     a = array();
-    a["" + num] = array();
-    a["" + num]["wr"] = wr;
-    a["" + num]["player"] = player;
+    a["wr"] = wr;
+    a["player"] = player;
+
     return a;
 }
 
@@ -99,7 +86,7 @@ wr_carrion(num_of_players)
             player = undefined;
     }
 
-    return return_data(num_of_players, wr, player);
+    return return_data(wr, player);
 }
 
 wr_samanthas_lullaby(num_of_players)
@@ -128,7 +115,7 @@ wr_samanthas_lullaby(num_of_players)
             player = undefined;
     }
 
-    return return_data(num_of_players, wr, player);
+    return return_data(wr, player);
 }
 
 wr_coming_home(num_of_players)
@@ -157,7 +144,7 @@ wr_coming_home(num_of_players)
             player = undefined;
     }
 
-    return return_data(num_of_players, wr, player);
+    return return_data(wr, player);
 }
 
 wr_re_damned(num_of_players)
@@ -186,7 +173,7 @@ wr_re_damned(num_of_players)
             player = undefined;
     }
 
-    return return_data(num_of_players, wr, player);
+    return return_data(wr, player);
 }
 
 wr_we_all_fall_down(num_of_players)
@@ -215,7 +202,7 @@ wr_we_all_fall_down(num_of_players)
             player = undefined;
     }
 
-    return return_data(num_of_players, wr, player);
+    return return_data(wr, player);
 }
 
 wr_where_are_we_going(num_of_players)
@@ -244,7 +231,7 @@ wr_where_are_we_going(num_of_players)
             player = undefined;
     }
 
-    return return_data(num_of_players, wr, player);
+    return return_data(wr, player);
 }
 
 wr_rusty_cage(num_of_players)
@@ -273,7 +260,7 @@ wr_rusty_cage(num_of_players)
             player = undefined;
     }
 
-    return return_data(num_of_players, wr, player);
+    return return_data(wr, player);
 }
 
 wr_always_running(num_of_players)
@@ -302,7 +289,7 @@ wr_always_running(num_of_players)
             player = undefined;
     }
 
-    return return_data(num_of_players, wr, player);
+    return return_data(wr, player);
 }
 
 wr_archangel(num_of_players)
@@ -331,7 +318,7 @@ wr_archangel(num_of_players)
             player = undefined;
     }
 
-    return return_data(num_of_players, wr, player);
+    return return_data(wr, player);
 }
 
 wr_aether(num_of_players)
@@ -360,7 +347,7 @@ wr_aether(num_of_players)
             player = undefined;
     }
 
-    return return_data(num_of_players, wr, player);
+    return return_data(wr, player);
 }
 
 wr_shepherd(num_of_players)
@@ -389,8 +376,5 @@ wr_shepherd(num_of_players)
             player = undefined;
     }
 
-    return return_data(num_of_players, wr, player);
+    return return_data(wr, player);
 }
-
-print(stub)
-{}
