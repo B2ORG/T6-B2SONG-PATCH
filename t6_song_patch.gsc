@@ -127,7 +127,9 @@ welcome_prints()
 	if (isDefined(level.SONG_LEADERBOARD))
 	{
 		wait 0.75;
-		iPrintLn("Leaderboard updated: " + level.SONG_LEADERBOARD["date"]);
+		iPrintLn("Leaderboard updated on: ^1"+ level.SONG_LEADERBOARD["date"]);
+		wait 0.75;
+		iPrintLn("By: ^1" + level.SONG_LEADERBOARD["update_by"]);
 	}
 }
 
@@ -628,11 +630,19 @@ gspeed_watcher()
     }
 }
 
-get_time_detailed(start_time)
+/* Override time takes seconds (floats)*/
+get_time_detailed(start_time, override_time)
 {
-    current_time = int(gettime());
-    
-    miliseconds = (current_time - start_time) + 50; // +50 for rounding
+	if (isDefined(override_time))
+	{
+		miliseconds = override_time * 1000;
+	}
+	else
+	{
+		current_time = int(gettime());
+		miliseconds = (current_time - start_time) + 50; // +50 for rounding
+	}
+
     minutes = 0;
     seconds = 0;
 
@@ -1297,6 +1307,7 @@ song_timing()
 {
 	level.song_start_timestamp = getTime();
 	level.activated_songs = 0;
+	level.printed_wrs = 0;
 	setup_songs();
 	start_tracking();
 	level thread song_display();
@@ -1335,6 +1346,7 @@ start_tracking()
 		{
 			song thread [[song.display_progress]](i);
 			song thread [[song.progress_tracking]]();
+			song thread show_wr(i);
 			i++;
 		}
 	}
@@ -1368,10 +1380,14 @@ song_display()
 	}
 }
 
-setup_song(code, map, progress_func, display_func, secret_splits, list_splits, split_func)
+setup_song(code, map, progress_func, display_func, secret_splits, list_splits/*, wr_func, split_func*/)
 {
+	/*
 	if (!isDefined(split_func))
-		split_func = ::eval_split;
+		split_func = ::;
+	if (!isDefined(wr_func))
+		wr_func = ::show_wr;
+	*/
 
 	song = spawnStruct();
 	song.code = code;
@@ -1381,7 +1397,8 @@ setup_song(code, map, progress_func, display_func, secret_splits, list_splits, s
 	song.display_progress = display_func;
 	song.secret_splits = secret_splits;
 	song.splits = list_splits;
-	song.split_generator = split_func;
+	// song.split_generator = split_func;
+	// song.show_wr = wr_func;
 
 	level.songs[level.songs.size] = song;
 }
@@ -1399,7 +1416,8 @@ split_handler(num_of_splits, custom)
 		if (isDefined(data))
 			debug_print("split_handler(): trigger 'split' received with index='" + index + "' data='" + data + "'");
 
-		last_split = self [[self.split_generator]](index, s);
+		// last_split = self [[self.split_generator]](index, s);
+		last_split = self eval_split(index, s);
 
 		if (!self.secret_splits)
 			iPrintLn(last_split.message);
@@ -2046,6 +2064,55 @@ debug_controller()
 		wait 0.05;
 
 	level notify("unveil_mannequins");
+}
+
+show_wr(index)
+{
+	level endon("end_game");
+
+	if (!isDefined(level.SONG_LEADERBOARD))
+		return;
+
+	debug_print(self.code + " trying to show WR");
+
+	waittime = index / 10;
+	wait waittime;
+
+	posy = 40 + (40 * level.printed_wrs);
+	str_playersize = "" + get_players().size;
+
+	time = level.SONG_LEADERBOARD[self.code][str_playersize]["wr"];
+	players = level.SONG_LEADERBOARD[self.code][str_playersize]["player"];
+
+	debug_print("show_wr(" + index + "): are defined time, players " + isDefined(time) + ", " + isDefined(players));
+	debug_print("show_wr(" + index + "): time='" + time + "' players='" + players + "'");
+
+	wrhud = createserverfontstring("objective", 1.7);
+	wrhud setPoint("TOPLEFT", "TOPLEFT", -40, posy);
+	wrhud.color = (1, 1, 1);
+	wrhud setText("WR " + get_song_title(self.code) + ": ^1" + get_time_detailed(0, time));
+
+	wrbyhud = createserverfontstring("objective", 1.2);
+	wrbyhud setPoint("TOPLEFT", "TOPLEFT", -40, posy + 19);
+	wrbyhud.color = (1, 1, 1);
+	wrbyhud setText("BY: ^1" + players);
+
+	level.printed_wrs++;
+
+	wrhud FadeOverTime(1);
+	wrbyhud FadeOverTime(1);
+	wrhud.alpha = 1;
+	wrbyhud.alpha = 1;
+
+	wait 5 - waittime;
+
+	wrhud FadeOverTime(1);
+	wrbyhud FadeOverTime(1);
+	wrhud.alpha = 0;
+	wrbyhud.alpha = 0;
+	wait 1;
+	wrhud destroy();
+	wrbyhud destroy();
 }
 
 /*
