@@ -6,6 +6,8 @@
 
 init()
 {
+    precacheshader("waypoint_revive");
+
     level.SONG_TIMING = array();
     level.SONG_TIMING["version"] = 7;
     level.SONG_TIMING["debug"] = true;
@@ -2004,10 +2006,10 @@ mannequinn_debugger()
     hud_elem = newhudelem();
     hud_elem.x = self.origin[0];
     hud_elem.y = self.origin[1];
-    hud_elem.z = self.origin[2] + 30;
+    hud_elem.z = self.origin[2] + 45;
     hud_elem.alpha = 1;
     hud_elem.archived = 1;
-    hud_elem setshader("waypoint_revive", 5, 5);
+    hud_elem setshader("waypoint_revive", 7, 7);
     hud_elem setwaypoint(1);
     hud_elem.hidewheninmenu = 1;
     hud_elem.immunetodemogamehudsettings = 1;
