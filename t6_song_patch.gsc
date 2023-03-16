@@ -28,7 +28,7 @@ song_main()
 	level endon("end_game");
 
 	level waittill("initial_players_connected");
-    iPrintLn("Song Auto-Timer ^3V" + song_config("version"));
+	thread welcome_prints();
 
     flag_wait("initial_blackscreen_passed");
     flag_set("game_started");
@@ -113,6 +113,22 @@ debug_print(text)
 {
     if (is_debug())
         print("DEBUG: " + text);
+}
+
+welcome_prints()
+{
+	level endon("end_game");
+
+	wait 0.75;
+    iPrintLn("Song Auto-Timer ^3V" + song_config("version"));
+	wait 0.75;
+    iPrintLn("Source: ^3github.com/Zi0MIX/T6-SONG-TIMER-PATCH");
+
+	if (isDefined(level.SONG_LEADERBOARD))
+	{
+		wait 0.75;
+		iPrintLn("Leaderboard updated: " + level.SONG_LEADERBOARD["date"]);
+	}
 }
 
 is_debug()
