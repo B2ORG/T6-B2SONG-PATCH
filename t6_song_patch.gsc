@@ -42,7 +42,7 @@ song_main()
     if (is_nuketown())
         level thread move_chest();
 
-	if (is_debug() && is_origins())
+	if (is_debug())
 		level thread clear_sound_lock();
 
     /*
@@ -163,7 +163,6 @@ get_split_hud_properties()
 	{
 		case "zm_transit":
 		case "zm_highrise":
-		case "zm_prison":
 		case "zm_buried":
 			properties["ypos"] = -20;
 			properties["optimize"] = false;
@@ -172,6 +171,9 @@ get_split_hud_properties()
 			properties["ypos"] = -20;
 			properties["optimize"] = true;
 			break;
+		case "zm_prison":
+			properties["ypos"] = 40;
+			properties["optimize"] = false;
 		case "zm_tomb":
 			properties["ypos"] = 40;
 			properties["optimize"] = true;
@@ -416,10 +418,10 @@ draw_song(split, songcode)
 
 	increment = 140;
 	s_increment = 18;
-	textscale = 1.7;
+	textscale = 1.8;
 	if (song_config("split_hud")["optimize"])
 	{
-		textscale = 1.3;
+		textscale = 1.4;
 		increment = 80;
 		s_increment = 12;
 	}
@@ -432,28 +434,21 @@ draw_song(split, songcode)
 	song_head setpoint("TOPLEFT", "TOPLEFT", -40, posy);
 	song_head.color = (1, 1, 1);
 	song_head.alpha = 1;
-	song_head setText(get_song_title(songcode));
-
-	song_time = createserverfontstring("big", textscale + 0.2);
-	song_time setpoint("TOPLEFT", "TOPLEFT", -40, posy + s_increment);
-	song_time.color = (1, 1, 1);
-	song_time.alpha = 1;
-	song_time setText("^3" + split.time_readable);
+	song_head setText(get_song_title(songcode) + "\n^3" + split.time_readable);
 
     thread hud_color_watcher(song_head);
-	// song_time doesn't have color watcher on purpose
 }
 
 draw_split(split, num_of_splits)
 {
-	increment = 160;
-	s_increment = 20;
+	increment = 140;
+	s_increment = 22;
 	textscale = 1.5;
 	if (song_config("split_hud")["optimize"])
 	{
 		textscale = 1.2;
 		increment = 80;
-		s_increment = 15;
+		s_increment = 17;
 	}
 
 	posy = song_config("split_hud")["ypos"] + s_increment;
