@@ -1,50 +1,168 @@
-# A patch with automated timers for accurate timing of song speedruns.
+With this patch, forget about having to manually time Black Ops II Zombies Song Speedruns.
 
-### Timing rules
-- Start position: When screen fades in </br>
-- Finish position: Immidiately after all conditions required for playing the music are met </br>
+# Timing rules
 
-### Details
-- Patch should support every version of BO2, no Plutonium exclusive features are being used </br>
-- Patch supports all Easter Egg songs in BO2 </br>
-- Patch does not change any game rules besides setting Strafe & Backspeed to proper values (which is being done by both Redacted and Plutonium anyways) </br>
-- If you want to report a problem or request a feature, you may use the Issues section. </br>
+- Start position: As soon as player is given control over his character </br>
+- Finish position: As soon as trigger for the song in quesion is hit </br>
 
-### First Box module
-- First Box module will not work if Song Patch is not in the game, so it can be stored in scripts folder at all times. </br>
-- First Box module only works on Nuketown and Buried. </br>
-- First Box is only applied to first hit in the game (no matter which player). </br>
-- First Box on Nuketown gives MK2, and on Buried Paralyzer. </br>
-- First Box location on Nuketown is always going to be Yellow House. </br>
+# Installation
 
-### Broken versions history
-- 4.0 - Broken perma perks -> Fixed in 4.1. </br>
-- 5.0 - Inaccurate velocity meter -> Fixed in 5.1. </br>
+Installation methodology differs between launchers.
 
-# Changelog
-### V3
-- Seconds decimals (ms) have been reduced to one, due to 2nd decimal being inaccurate at times. Eg: `.8 == 800ms`
-- Mob song names have been fixed.
-- Patch prints have been improved.
+## New Plutonium (Online)
 
-### V4
-- Attempt counter has been added. It will reset between maps and game restarts.
-- All perma perks are now awarded at the beginning of each game on maps supporting them.
-- Progress counter has been added for Access Level 1 & 2.
+- Get most recent version of the patch from [releases](https://github.com/Zi0MIX/T6-SONG-TIMER-PATCH/releases) section
+- Put that file in:
 
-### V4.1
-- Fixed an issue where permaperk would not be lost and would remain active for the entire game if player would break permaperk conditions within first few seconds of the game
+```C:\Users\{your username here}\AppData\Local\Plutonium\storage\t6\scripts\zm```
 
-### V5
-- Removed access levels, players agree to have all the functionalities in competitive runs
-- Added Velocity meter and Gspeed display
-- Improved zone HUD handling
+Video installation guide: [YouTube](https://youtu.be/1gUZCMJ3Sjk) by SkimpyChooch (this has been made for older versions of the patch but it's pretty much the same thing)
 
-### V5.1
-- Fixed Z axis movement speed values counting towards velocity meter
+## Redacted (LAN)
 
-### V6
-- Added point drops tracker.
-- Added First Box detector.
-- Made zone hud less visible.
-- Made optional First Box module (separate file).
+- Download [raw script](https://github.com/Zi0MIX/T6-SONG-TIMER-PATCH/blob/main/t6_song_patch.gsc) (make sure to do it from `main` branch, you can do it by clicking on the hyperlink)
+- Put that file in:
+
+```{path to your redacted folder}\data\scripts```
+
+## Additional info
+
+The reason why compiled script is not going to work with Redacted, is the fact that it's compiled using [xensik's compiler](https://github.com/xensik/gsc-tool), which is superior to old compiler but not supported by either Redacted or Ancient Plutonium (Offline)
+
+Please note, script is not rated or tested for Redacted, use it there at your own risk. I recommend either using most recent version of Plutonium or version [r2905](https://youtu.be/tb2gsL12wwI)
+
+# Changes
+
+Patch is doing the following things:
+- Fix strafe and back speed to values 1.0 and 0.9 respectivelly
+- Moves the box on Nuketown to always be behind Yellow House
+- Tracks `music lock` which is used by the game as sort of a global lock. While this is active, no other music can be triggered (biggest impact for Origins)
+- Gives optional first box capabilites (look below for details)
+- Displays current player velocity and zone he's in (due to gsc patches being server sided, off-host players will notice slight desync on their velocity meters)
+- Awards perma perks on connect for all players on maps that use them (note game will force fast restart upon doing so)
+- Fills up all players bank accounts (only in game tho)
+- Displays current progress for each song (if possible)
+- Displays current amount of attempts (Counter will reset if players keep playing the same song but change host at some point. To reset attempt tracker, host should load on a different map once)
+- Tracks triggers for songs and splits for songs (look below for details)
+
+# Song Timing
+
+Patch tracks every song that is in game, and each song has dedicated splits. Splits will be printed upon completing them for few seconds, and then permanently upon activating the song.
+
+# Splits
+
+List of splits for each of the songs
+
+## Carrion (Tranzit)
+1. As soon as depot is open
+2. 2nd teddy bear
+
+## Samantha's Lullaby (Nuketown)
+1. Entering 2nd floor of yellow house
+2. Entering green house
+
+## Coming Home (Nuketown)
+Split into 3 main zones, time 2 first zones as splits, splits are hidden until song is active
+
+## Re-Damned (Nuketown)
+1. End of round 2
+2. End of round 4
+
+## We All Fall Down (Die Rise)
+1. 1st teddy bear
+2. 2nd teddy bear
+
+## Rusty Cage (MOTD)
+1. 2nd bottle
+2. Gondola activation
+
+## Where Are We Going (MOTD)
+1. Opening laundry zone
+2. Last doors open
+
+## Always Running (Buried)
+1. Reaching floor level of bank area
+2. 2nd teddy bear
+
+## Archangel (Origins)
+1. 1st door
+2. 2nd door
+3. Entering NML
+
+## Aether (Origins)
+1. 1st door
+2. 2nd door
+3. Last door
+
+## Shepherd of Fire (Origins)
+1. Entering NML
+2. 1st radio
+3. 2nd radio
+
+# First Box
+
+In order to use First Box, player has to write in game chat (not the game console) as following
+
+```fb <key>```
+
+Key being a short text representing each of the weapons. This will force selected weapon from the box next time the box is hit. Note, you can only select weapon that's available on the map you're playing
+
+## Weapon keys
+
+| Weapon | Key |
+| --- | --- |
+| Ballistic Knife | bk |
+| Blundergat | blunder |
+| EMP | emp |
+| Monkeys | monk |
+| Paralyzer | paralyzer |
+| RayGun | mk1 |
+| RayGun MK2 | mk2 |
+| Sliquifier | sliq |
+| Time Bomb | time |
+| AK47 | ak47 |
+| B23R | b23re |
+| Chicom CQB | chic |
+| Death Machine | dm |
+| DSR50 | dsr |
+| Executioner | exe |
+| Fal | fal |
+| Five-Seven | 57 |
+| Five-Seven DW | 257 |
+| Galil | galil |
+| HAMR | hamr |
+| KAP-40 | kap |
+| KSG | ksg |
+| LSAT | lsat |
+| M1216 | m1216 |
+| M1927 | tommy |
+| M27 | m27 |
+| M82A1 Barret | barret |
+| M8A1 | m8 |
+| MG08 | mg |
+| MP40 | mp40 |
+| MTAR | mtar |
+| PDW57 | pdw |
+| Python | pyt |
+| RNMA | rnma |
+| RPD | rpd |
+| RPG | rpg |
+| Saiga | s12 |
+| Scar | scar |
+| Skorpion EVO | evo |
+| Type 25 | type |
+| War Machine | wm |
+
+# Leaderboards
+
+New in version 7 is a leaderboard module. If file storing leaderboard data is present in your patch folder, Song patch will display current records for the map you're playing. For that to show, you need to download 2nd file that you can find in releases( installation process looks exactly the same as main patch file), this file will be updated every time a record is beaten, but it's up to the player to download the updated file from the releases section.
+
+# Updates
+
+- To see details about updates, visit [changelog](https://github.com/Zi0MIX/T6-SONG-TIMER-PATCH/blob/main/CHANGELOG.md) file.
+- To track development, join [my Discord server](https://discord.gg/fDY4VR6rNE), where details about my current projects are being posted
+- To track releases (for both main updates and leaderboard file updates) join [Official Song Speedrunning Discord Server](https://discord.gg/8ugeuytEAm). Info about releases will also appear on my server, but if you gonna play song speedruns, i recommend being on the dedicated discord server regardless.
+
+# Contribution
+
+You can contribute to this project either passively, by reporting bugs, feature requests, new records (for leaderboard), or actively, by forking this repository to your own GitHub and opening a pull request with changes. Please do note, changes you add must align with Song Speedrunning ruleset, and also not break current features.
