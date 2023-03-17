@@ -10,7 +10,7 @@ init()
 
     level.SONG_TIMING = array();
     level.SONG_TIMING["version"] = 7;
-    level.SONG_TIMING["debug"] = true;
+    level.SONG_TIMING["debug"] = false;
     level.SONG_TIMING["hud_right_pos"] = 30;
     level.SONG_TIMING["allow_firstbox"] = true;
 	level.SONG_TIMING["split_hud"] = get_split_hud_properties();
