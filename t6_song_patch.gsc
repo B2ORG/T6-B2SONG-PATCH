@@ -1,3 +1,4 @@
+#include maps\mp\_utility;
 #include maps\mp\gametypes_zm\_hud_util;
 #include common_scripts\utility;
 #include maps\mp\zombies\_zm_utility;
@@ -9,13 +10,16 @@ init()
     precacheshader("waypoint_revive");
 
     level.SONG_TIMING = array();
-    level.SONG_TIMING["version"] = 7;
+    level.SONG_TIMING["version"] = 7.1;
     level.SONG_TIMING["debug"] = false;
     level.SONG_TIMING["hud_right_pos"] = 30;
     level.SONG_TIMING["allow_firstbox"] = true;
 	level.SONG_TIMING["split_hud"] = get_split_hud_properties();
 	level.SONG_TIMING["randomize_color"] = false;
 	level.SONG_TIMING["leaderboards_enabled"] = true;
+
+	// if (is_debug())
+	// 	level.destructible_callbacks["headless"] = ::sndmusegg3_counter_override;
 
     set_dvars();
 
@@ -427,6 +431,26 @@ draw_split(split, num_of_splits)
 	split_hud.color = (1, 1, 1);
 	split_hud.alpha = 1;
 	split_hud setText(split.message);
+}
+
+watch_for_kill_trigger(trigger, func, arg1, arg2)
+{
+	level endon("end_game");
+
+	level waittill(trigger);
+	[[func]](arg1, arg2);
+	self notify(trigger + "_wrapped");
+}
+
+hud_delete(hud_elem, fade_time)
+{
+	level endon("end_game");
+
+	hud_elem fadeOverTime(fade_time);
+	hud_elem.alpha = 0;
+
+	wait fade_time + 0.05;
+	hud_elem delete();
 }
 
 game_timer()
@@ -1486,6 +1510,7 @@ nuketown_tracker_wrapper2()
 
 	thread give_up_show_mannequins();
 	self thread debug_controller();
+	self thread mannequin_integrity();
 
 }
 
@@ -1689,6 +1714,7 @@ track_zone(split_index, zone_names, eval_func, eval_activity)
 track_mannequins(split_index, zone_collection, zone_code)
 {
 	level endon("end_game");
+	level endon("kill_mannequin_tracking");
 
 	destructibles = getentarray("destructible", "targetname");
 	self.mannequins[zone_code] = array();
@@ -1915,11 +1941,14 @@ progress_meteors(pos_multi)
 progress_mannequins(pos_multi)
 {
 	level endon("end_game");
+	self endon("kill_mannequin_tracking_wrapped");
 
 	progress_hud = progress_hud(pos_multi);
 	progress_hud.label = &"MANNEQUINS: ^3";
 	progress_hud setValue(28);
 	progress_hud.alpha = 1;
+
+	self thread watch_for_kill_trigger("kill_mannequin_tracking", ::hud_delete, progress_hud, 1);
 
 	while (!isDefined(level.mannequin_count))
 		wait 0.05;
@@ -2670,3 +2699,74 @@ naive_round(floating_point)
 	floating_point = int(floating_point * 1000);
 	return floating_point / 1000;
 }
+
+mannequin_integrity()
+{
+	level endon("end_game");
+
+	wait 0.1;
+
+	detections = 0;
+	foreach(mannequin_zone in self.mannequins)
+		detections += mannequin_zone.size;
+
+	debug_print("mannequin_integrity(): detected count: " + detections + " current dvar: " + getDvar("song_attempts"));
+
+	/* Not sure why it should be 29 in this check, but it works so */
+	if (detections != 29)
+	{
+		if (!is_debug())
+			level notify("kill_mannequin_tracking");
+		else
+			debug_print("mannequin_integrity(): sending 'kill_mannequin_tracking' trigger");
+
+		iPrintLn("^1WARNING: ^7Mannequin number incorrect.");
+		iPrintLn("Restart within 5 seconds to not lose an attempt");
+		if (getDvar("song_attempts") != "")
+		{
+			num = getDvarInt("song_attempts");
+			setDvar("song_attempts", num - 1);
+			wait 5;
+			setDvar("song_attempts", num + 1);
+		}
+	}
+}
+
+/*
+sndmusegg3_counter_override()
+{
+    if (level.mannequin_count <= 0)
+        return;
+
+    level.mannequin_count--;
+	debug_print("mannequin callback: " + level.mannequin_count);
+
+    if (level.mannequin_count <= 0)
+    {
+        while (isdefined(level.music_override) && level.music_override)
+            wait 5;
+
+        level thread sndmuseggplay(spawn("script_origin", (0, 0, 0)), "zmb_nuked_song_3", 80);
+    }
+}
+
+sndmuseggplay(ent, alias, time)
+{
+    level.music_override = 1;
+    wait 1;
+    ent playsound(alias);
+    level thread sndeggmusicwait(time);
+    level waittill_either("end_game", "sndSongDone");
+    ent stopsounds();
+    wait 0.05;
+    ent delete();
+    level.music_override = 0;
+}
+
+sndeggmusicwait(time)
+{
+    level endon("end_game");
+    wait(time);
+    level notify("sndSongDone");
+}
+*/
