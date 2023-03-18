@@ -27,7 +27,7 @@ print(stub)
 get_song_leaderboard()
 {
     lb = array();
-    lb["date"] = "March 17th 2023";
+    lb["date"] = "March 18th 2023";
     lb["update_by"] = "Zi0";
 
     for (i = 1; i < 5; i++)
@@ -106,8 +106,8 @@ wr_samanthas_lullaby(num_of_players)
             player = "Zi0, Skimpy & Tonestone";
             break;
         case 4:
-            wr = 0;
-            player = "Nobody has this record yet!";
+            wr = 58.5;
+            player = "Yojurt, Skimpy, Zi0 & Tonestone";
             break;
         default:
             print("Failed to define WR");
@@ -131,8 +131,8 @@ wr_coming_home(num_of_players)
             player = "Nobody has this record yet!";
             break;
         case 3:
-            wr = 0;
-            player = "Nobody has this record yet!";
+            wr = 158.9;
+            player = "Yojurt, Skimpy & Zi0";
             break;
         case 4:
             wr = 0;
