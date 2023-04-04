@@ -10,7 +10,7 @@ init()
     precacheshader("waypoint_revive");
 
     level.SONG_TIMING = array();
-    level.SONG_TIMING["version"] = 7.1;
+    level.SONG_TIMING["version"] = 7.2;
     level.SONG_TIMING["debug"] = false;
     level.SONG_TIMING["hud_right_pos"] = 30;
     level.SONG_TIMING["allow_firstbox"] = true;
@@ -71,11 +71,9 @@ player_thread()
     if (is_debug())
         self.score = 666666;
 
-    if (is_tranzit() || is_die_rise() || is_buried())
-        self.account_value = level.bank_account_max;
-
     self thread velocity_meter();
     self thread zone_hud();
+	self thread fill_up_bank();
 	// if (is_debug())
 	// 	self thread get_my_coordinates();
 }
@@ -842,6 +840,17 @@ scan_in_box()
 
     }
     return;
+}
+
+fill_up_bank()
+{
+	level endon("end_game");
+	self endon("disconnect");
+
+	flag_wait("initial_blackscreen_passed");
+
+    if (is_tranzit() || is_die_rise() || is_buried())
+        self.account_value = level.bank_deposit_max_amount;
 }
 
 first_box()
