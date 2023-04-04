@@ -56,3 +56,7 @@ See detailed information about changes introduced in the patch
 
 - Patch now prevents false Nuketown's Coming Home complition
 This bug is caused by the game only generating 27 mannequins on the map. When that happens, patch gives players an option to restart without losing an attempt, it also disables Coming Home tracking for that round.
+
+## Version 7.2
+
+- Fixed error that prevented bank from working
