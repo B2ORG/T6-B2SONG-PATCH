@@ -850,7 +850,7 @@ fill_up_bank()
 	flag_wait("initial_blackscreen_passed");
 
     if (is_tranzit() || is_die_rise() || is_buried())
-        self.account_value = level.bank_deposit_max_amount;
+        self.account_value = level.bank_account_max;
 }
 
 first_box()
