@@ -13,6 +13,7 @@ init()
     level.SONG_TIMING["version"] = 7.2;
     level.SONG_TIMING["debug"] = false;
     level.SONG_TIMING["hud_right_pos"] = 30;
+	level.SONG_TIMING["tenth_timer_in_use"] = false;
     level.SONG_TIMING["allow_firstbox"] = true;
 	level.SONG_TIMING["split_hud"] = get_split_hud_properties();
 	level.SONG_TIMING["randomize_color"] = false;
@@ -460,10 +461,15 @@ game_timer()
 
     timer_hud = createserverfontstring("big" , 1.6);
 	timer_hud setPoint("TOPRIGHT", "TOPRIGHT", song_config("hud_right_pos"), 0);
+	if (song_config("tenth_timer_in_use"))
+		timer_hud setPoint("LEFT", "TOPRIGHT", -18, 12);
 	timer_hud.alpha = 1;
 	timer_hud.color = level.hud_color;
 
-	timer_hud setTimerUp(0);
+	if (song_config("tenth_timer_in_use"))
+		timer_hud setTenthsTimerUp(0.05);
+	else
+		timer_hud setTimerUp(0);
 }
 
 round_timer()
