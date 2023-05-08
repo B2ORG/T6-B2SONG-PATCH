@@ -882,17 +882,6 @@ scan_in_box()
     return;
 }
 
-fill_up_bank()
-{
-	level endon("end_game");
-	self endon("disconnect");
-
-	flag_wait("initial_blackscreen_passed");
-
-    if (has_permaperks_system())
-        self.account_value = level.bank_account_max;
-}
-
 first_box()
 {	
     level endon("end_game");
@@ -1215,6 +1204,18 @@ force_next_location()
 			level.chest_index = b;
 	}
 }
+
+fill_up_bank()
+{
+	level endon("end_game");
+	self endon("disconnect");
+
+	flag_wait("initial_blackscreen_passed");
+
+    if (has_permaperks_system())
+        self.account_value = level.bank_account_max;
+}
+
 
 perma_perks_handler()
 {
