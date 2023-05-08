@@ -27,7 +27,7 @@ print(stub)
 get_song_leaderboard()
 {
     lb = array();
-    lb["date"] = "March 18th 2023";
+    lb["date"] = "May 9th 2023";
     lb["update_by"] = "Zi0";
 
     for (i = 1; i < 5; i++)
@@ -65,8 +65,8 @@ wr_carrion(num_of_players)
     switch (num_of_players)
     {
         case 1:
-            wr = 119.2;
-            player = "Vistek";
+            wr = 115.2;
+            player = "J Dubs";
             break;
         case 2:
             wr = 69.2;
@@ -123,8 +123,8 @@ wr_coming_home(num_of_players)
     switch (num_of_players)
     {
         case 1:
-            wr = 0;
-            player = "Nobody has this record yet!";
+            wr = 142.9;
+            player = "Laza";
             break;
         case 2:
             wr = 0;
@@ -152,8 +152,8 @@ wr_re_damned(num_of_players)
     switch (num_of_players)
     {
         case 1:
-            wr = 335.8;
-            player = "Zi0";
+            wr = 334.9;
+            player = "Laza";
             break;
         case 2:
             wr = 278.6;
@@ -211,11 +211,11 @@ wr_where_are_we_going(num_of_players)
     {
         case 1:
             wr = 74.0;
-            player = "Vistek";
+            player = "Vistek, sable";
             break;
         case 2:
             wr = 54.0;
-            player = "Vistek & Jayemce";
+            player = "Vistek & Jayemce, sable & Reality";
             break;
         case 3:
             wr = 46.0;
@@ -239,7 +239,7 @@ wr_rusty_cage(num_of_players)
     switch (num_of_players)
     {
         case 1:
-            wr = 74.9;
+            wr = 73.1;
             player = "Excosis";
             break;
         case 2:
@@ -297,12 +297,12 @@ wr_archangel(num_of_players)
     switch (num_of_players)
     {
         case 1:
-            wr = 180.4;
-            player = "rac seven";
+            wr = 139.2;
+            player = "Excosis";
             break;
         case 2:
-            wr = 107.0;
-            player = "Zi0 & MrMoonie";
+            wr = 105.9;
+            player = "Excosis & sable";
             break;
         case 3:
             wr = 107.7;
@@ -326,12 +326,12 @@ wr_aether(num_of_players)
     switch (num_of_players)
     {
         case 1:
-            wr = 0;
-            player = "Nobody has this record yet!";
+            wr = 121.0;
+            player = "D4niel";
             break;
         case 2:
-            wr = 0;
-            player = "Nobody has this record yet!";
+            wr = 121.0;
+            player = "Excosis & sable";
             break;
         case 3:
             wr = 0;
