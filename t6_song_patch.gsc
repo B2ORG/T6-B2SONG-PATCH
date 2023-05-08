@@ -457,8 +457,6 @@ game_timer()
     self endon("disconnect");
     level endon("end_game");
 
-    level.songsr_start = int(gettime());
-
     timer_hud = createserverfontstring("big" , 1.6);
 	timer_hud setPoint("TOPRIGHT", "TOPRIGHT", song_config("hud_right_pos"), 0);
 	if (song_config("tenth_timer_in_use"))
