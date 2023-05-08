@@ -47,8 +47,10 @@ song_main()
     if (is_nuketown())
         level thread move_chest();
 
-	if (is_debug())
-		level thread clear_sound_lock();
+	level thread clear_sound_lock();
+
+	if (is_anypercent())
+		level thread [[level.song_anypercent.powerup_rig]]();
 }
 
 song_player()
@@ -75,6 +77,8 @@ player_thread()
     self thread velocity_meter();
     self thread zone_hud();
 	self thread fill_up_bank();
+	if (is_anypercent())
+		self thread [[level.song_anypercent.disable_oob_safety]]();
 	// if (is_debug())
 	// 	self thread get_my_coordinates();
 }
@@ -90,9 +94,10 @@ song_hud()
     level thread attempts_hud();
     level thread gspeed_watcher();
 
-    level thread generate_sign(-125, "MUSIC LOCK", ::eval_music_override);
-    level thread generate_sign(0, "POINT DROP", ::eval_point_drop);
-    level thread generate_sign(125, "FIRST BOX", ::eval_first_box);
+    level thread generate_sign(-186, "MUSIC LOCK", ::eval_music_override);
+    level thread generate_sign(-62, "POINT DROP", ::eval_point_drop);
+    level thread generate_sign(62, "FIRST BOX", ::eval_first_box);
+    level thread generate_sign(186, "ANYPERCENT", ::is_anypercent);
 }
 
 
@@ -276,6 +281,13 @@ set_dvars()
     setdvar("player_strafespeedscale", 1);
     setdvar("player_backspeedscale", 0.9);
     setdvar("g_speed", 190);
+}
+
+is_anypercent()
+{
+	if (isDefined(level.song_anypercent) && level.song_anypercent.enabled)
+		return true;
+	return false;
 }
 
 is_plutonium()
@@ -1336,14 +1348,20 @@ clear_sound_lock()
 	
 	while(true)
 	{
-		if (level.music_override)
+		wait 0.1;
+
+		if (!is_debug() && !is_anypercent())
+			continue;
+
+		if (is_true(level.music_override))
 		{
-			wait 5;
-			iPrintLn("DEBUG: ^1CLEARED MUSIC_OVERRIDE");
+			if (is_debug())
+			{
+				wait 5;
+				iPrintLn("DEBUG: ^1CLEARED MUSIC_OVERRIDE");
+			}
 			level.music_override = 0;
 		}
-
-		wait 0.1;
 	}
 }
 

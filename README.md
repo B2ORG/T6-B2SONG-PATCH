@@ -153,6 +153,17 @@ Key being a short text representing each of the weapons. This will force selecte
 | Type 25 | type |
 | War Machine | wm |
 
+# Any% category
+
+In order to play on built-in any% mode, download additional file `T6-SONG-ANYPERCENT.gsc` and put it in your patch folder alongside the normal patch. If you wish to restore normal behavior, just remove (or move) the file out of the patch folder and restart the game / perform `map_restart`.
+
+## Any% changes
+
+- First zombie is guaranteed to give double points
+- Nuke is guaranteed to be a 2nd drop in the cycle
+- Removed sound lock (when song items cannot be pressed on Origins)
+- Removed OOB safety, players can now go out of bounds
+
 # Leaderboards
 
 New in version 7 is a leaderboard module. If file storing leaderboard data is present in your patch folder, Song patch will display current records for the map you're playing. For that to show, you need to download 2nd file that you can find in releases( installation process looks exactly the same as main patch file), this file will be updated every time a record is beaten, but it's up to the player to download the updated file from the releases section.
