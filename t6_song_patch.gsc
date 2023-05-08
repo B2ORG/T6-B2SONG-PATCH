@@ -286,6 +286,23 @@ is_plutonium()
 	return true;
 }
 
+to_string_zfill(num)
+{
+	if (num == 0)
+		return "00";
+	if (num < 10)
+		return "0" + num;
+	return "" + num;
+}
+
+to_string_rfill(num)
+{
+	num = "" + num;
+	if (num.size == 1)
+		return num + "0";
+	return num;
+}
+
 allert(content, value)
 {
     if (!isDefined(level.allerts))
@@ -650,56 +667,56 @@ gspeed_watcher()
     }
 }
 
-/* Override time takes seconds (floats)*/
-get_time_detailed(start_time, override_time)
+current_time_text()
 {
-	if (isDefined(override_time))
-	{
-		miliseconds = override_time * 1000;
-	}
+	return timer_text((getTime() - level.song_start_timestamp) / 1000);
+}
+
+timer_text(initial_seconds)
+{
+	if (isstring(initial_seconds))
+		initial_seconds = float(initial_seconds);
+
+	time_array = array();
+
+	if (isSubStr("" + initial_seconds, "."))
+		time_array["miliseconds"] = int(strTok("" + initial_seconds, ".")[1]);
 	else
+		time_array["miliseconds"] = 0;
+	time_array["seconds"] = int(initial_seconds);
+	time_array["minutes"] = 0;
+	time_array["hours"] = 0;
+
+	if (time_array["seconds"] >= 60)
 	{
-		current_time = int(gettime());
-		miliseconds = (current_time - start_time) + 50; // +50 for rounding
-	}
+		c0 = get_time_element(time_array["seconds"], 60);
+		time_array["minutes"] = c0[0];
+		time_array["seconds"] = c0[1];
 
-    minutes = 0;
-    seconds = 0;
-
-	if( miliseconds > 995 )
-	{
-		seconds = int( miliseconds / 1000 );
-
-		miliseconds = int( miliseconds * 1000 ) % ( 1000 * 1000 );
-		miliseconds = miliseconds * 0.001; 
-
-		if( seconds > 59 )
+		if (time_array["minutes"] >= 60)
 		{
-			minutes = int( seconds / 60 );
-			seconds = int( seconds * 1000 ) % ( 60 * 1000 );
-			seconds = seconds * 0.001;
+			c1 = get_time_element(time_array["minutes"], 60);
+			time_array["hours"] = c1[0];
+			time_array["minutes"] = c1[1];
 		}
 	}
 
-    minutes = Int(minutes);
-    if (minutes == 0)
-        minutes = "00";
-	else if(minutes < 10)
-		minutes = "0" + minutes; 
+	time_array["miliseconds"] = to_string_rfill(time_array["miliseconds"]);
+	time_array["seconds"] = to_string_zfill(time_array["seconds"]);
+	time_array["minutes"] = to_string_zfill(time_array["minutes"]);
+	time_array["hours"] = to_string_zfill(time_array["hours"]);
 
-	seconds = Int(seconds); 
-    if (seconds == 0)
-        seconds = "00";
-	else if(seconds < 10)
-		seconds = "0" + seconds; 
+	if (time_array["hours"] != "00")
+		return time_array["hours"] + ":" + time_array["minutes"] + ":" + time_array["seconds"] + "." + time_array["miliseconds"];
+	return time_array["minutes"] + ":" + time_array["seconds"] + "." + time_array["miliseconds"];
+}
 
-	miliseconds = Int(miliseconds); 
-	if( miliseconds == 0 )
-		miliseconds = "000";
-	else if( miliseconds < 100 )
-		miliseconds = "0" + miliseconds;
-
-	return "" + minutes + ":" + seconds + "." + getsubstr(miliseconds, 0, 1); 
+get_time_element(value, step)
+{
+	for (i = 0; value >= step * (i + 1); i++) {}
+	remainer = value - (step * i);
+	debug_print("get_time_element(): i=" + i + " remainer=" + remainer);
+	return array(i, remainer);
 }
 
 number_as_string(num, upper)
@@ -1828,7 +1845,7 @@ eval_split(split_index, stub)
 	split = spawnStruct();
 	split.time = getTime();
 	split.text = self.splits[split_index];
-	split.time_readable = get_time_detailed(level.song_start_timestamp);
+	split.time_readable = current_time_text();
 	split.message = split.text + ": ^3" + split.time_readable;
 
 	level.splits[self.code][level.splits[self.code].size] = split;
@@ -1843,7 +1860,7 @@ eval_split_both(split_index, split_number)
 		split.text = self.splits[0] + " " + (split_number + 1);
 	else
 		split.text = self.splits[1];
-	split.time_readable = get_time_detailed(level.song_start_timestamp);
+	split.time_readable = current_time_text();
 	split.message = split.text + ": ^3" + split.time_readable;
 
 	level.splits[self.code][level.splits[self.code].size] = split;
@@ -2130,7 +2147,7 @@ show_wr(index)
 	wrhud setPoint("TOPLEFT", "TOPLEFT", -40, posy);
 	wrhud.color = (1, 1, 1);
 	wrhud.alpha = 0;
-	wrhud setText("WR " + get_song_title(self.code) + ": ^1" + get_time_detailed(0, time));
+	wrhud setText("WR " + get_song_title(self.code) + ": ^1" + timer_text(time));
 
 	wrbyhud = createserverfontstring("objective", 1.2);
 	wrbyhud setPoint("TOPLEFT", "TOPLEFT", -40, posy + 19);
