@@ -11,7 +11,7 @@ init()
 
     level.SONG_TIMING = array();
     level.SONG_TIMING["version"] = 7.2;
-    level.SONG_TIMING["debug"] = false;
+    level.SONG_TIMING["debug"] = true;
     level.SONG_TIMING["hud_right_pos"] = 30;
 	level.SONG_TIMING["tenth_timer_in_use"] = false;
     level.SONG_TIMING["allow_firstbox"] = true;
@@ -276,7 +276,6 @@ set_dvars()
 {
     flag_init("game_started");
     flag_init("box_rigged");
-    flag_init("permaperks_were_set");
 
     setdvar("player_strafespeedscale", 1);
     setdvar("player_backspeedscale", 0.9);
@@ -296,6 +295,14 @@ is_plutonium()
 	if (getDvar("cg_weaponCycleDelay") == "")
 		return false;
 	return true;
+}
+
+has_permaperks_system()
+{
+	/* Refer to init_persistent_abilities() */
+	if (isDefined(level.pers_upgrade_boards))
+		return true;
+	return false;
 }
 
 to_string_zfill(num)
@@ -882,7 +889,7 @@ fill_up_bank()
 
 	flag_wait("initial_blackscreen_passed");
 
-    if (is_tranzit() || is_die_rise() || is_buried())
+    if (has_permaperks_system())
         self.account_value = level.bank_account_max;
 }
 
@@ -1211,72 +1218,26 @@ force_next_location()
 
 perma_perks_handler()
 {
-	level endon("end_game");
-
-	if (!is_tranzit() && !is_die_rise() && !is_buried())
-        return;
-
-	self thread watch_permaperk_award();
+	if (!has_permaperks_system())
+		return;
 
 	foreach (player in level.players)
-	{
-		player.songs_awarding_permaperks = false;
-        player thread award_permaperks_safe();
-	}
+		player thread award_permaperks_safe();
 }
 
-watch_permaperk_award()
+permaperk_array(code, maps_award, maps_take)
 {
-	level endon("end_game");
+	if (!isDefined(maps_award))
+		maps_award = array("zm_transit", "zm_highrise", "zm_buried");
+	if (!isDefined(maps_take))
+		maps_take = array();
 
-	present_players = level.players.size;
+	permaperk = array();
+	permaperk["code"] = code;
+	permaperk["maps_award"] = maps_award;
+	permaperk["maps_take"] = maps_take;
 
-	while (true)
-	{
-		i = 0;
-		foreach (player in level.players)
-		{
-			if (!isDefined(player.songs_awarding_permaperks))
-				i++;
-		}
-
-		if (i == present_players && flag("permaperks_were_set"))
-			force_restart("Permaperks Awarded: ^1RESTART REQUIRED", 1);
-
-		if (level.round_number > 2)
-			break;
-
-		wait 0.1;
-	}
-
-	foreach (player in level.players)
-	{
-		if (isDefined(player.songs_awarding_permaperks))
-			player.songs_awarding_permaperks = undefined;
-	}
-}
-
-permaperk_struct(current_array, code, award, take, to_round, maps_exclude, map_unique)
-{
-	if (!isDefined(maps_exclude))
-		maps_exclude = array();
-	if (!isDefined(to_round))
-		to_round = 255;
-	if (!isDefined(map_unique))
-		map_unique = undefined;
-
-	permaperk = spawnStruct();
-	permaperk.code = code;
-	permaperk.to_round = to_round;
-	permaperk.award = award;
-	permaperk.take = take;
-	permaperk.maps_to_exclude = maps_exclude;
-	permaperk.map_unique = map_unique;
-
-	// debug_print("generating permaperk struct | data: code=" + code + " to_round=" + to_round + " award=" + award + " take=" + take + " map_unique=" + map_unique + " | size of current: " + current_array.size);
-
-	current_array[current_array.size] = permaperk;
-	return current_array;
+	return permaperk;
 }
 
 award_permaperks_safe()
@@ -1290,56 +1251,63 @@ award_permaperks_safe()
 	wait 0.5;
 
 	perks_to_process = array();
-	perks_to_process = permaperk_struct(perks_to_process, "revive", true, false);
-	perks_to_process = permaperk_struct(perks_to_process, "multikill_headshots", true, false);
-	perks_to_process = permaperk_struct(perks_to_process, "perk_lose", true, false);
-	perks_to_process = permaperk_struct(perks_to_process, "jugg", true, false, 15);
-	perks_to_process = permaperk_struct(perks_to_process, "flopper", true, false, 255, array(), "zm_buried");
-	perks_to_process = permaperk_struct(perks_to_process, "cash_back", true, false, 255);
-	perks_to_process = permaperk_struct(perks_to_process, "pistol_points", true, false, 255);
-	perks_to_process = permaperk_struct(perks_to_process, "double_points", true, false, 255);
-
-	self.songs_awarding_permaperks = true;
+	perks_to_process[perks_to_process.size] = permaperk_array("revive");
+	perks_to_process[perks_to_process.size] = permaperk_array("multikill_headshots");
+	perks_to_process[perks_to_process.size] = permaperk_array("perk_lose");
+	perks_to_process[perks_to_process.size] = permaperk_array("jugg");
+	perks_to_process[perks_to_process.size] = permaperk_array("flopper", array("zm_buried"));
+	perks_to_process[perks_to_process.size] = permaperk_array("box_weapon", array("zm_highrise", "zm_buried"), array("zm_transit"));
+	perks_to_process[perks_to_process.size] = permaperk_array("cash_back");
+	perks_to_process[perks_to_process.size] = permaperk_array("sniper");
+	perks_to_process[perks_to_process.size] = permaperk_array("insta_kill");
+	perks_to_process[perks_to_process.size] = permaperk_array("pistol_points");
+	perks_to_process[perks_to_process.size] = permaperk_array("double_points");
 
 	foreach (perk in perks_to_process)
 	{
+		self resolve_permaperk(perk);
 		wait 0.05;
+	}
 
-		if (isDefined(perk.map_unique) && perk.map_unique != level.script)
-			continue;
+	wait 0.5;
+	perks_to_process = undefined;
+	self uploadstatssoon();
+}
 
-		perk_code = perk.code;
-		debug_print(self.name + ": processing -> " + perk_code);
+resolve_permaperk(perk)
+{
+	wait 0.05;
 
-		// Do not try to award perk if player already has it
-		if (self.pers_upgrades_awarded[perk_code])
-			continue;
+	perk_code = perk["code"];
 
+	if (isinarray(perk["maps_award"], level.script) && !self.pers_upgrades_awarded[perk_code])
+	{
 		for (j = 0; j < level.pers_upgrades[perk_code].stat_names.size; j++)
 		{
 			stat_name = level.pers_upgrades[perk_code].stat_names[j];
 			stat_value = level.pers_upgrades[perk_code].stat_desired_values[j];
 
-			// Award perk if all conditions match
-			if (perk.award && level.round_number < perk.to_round && !isinarray(perk.maps_to_exclude, level.script))
-			{
-				self award_permaperk(stat_name, perk_code, stat_value);
-				wait_network_frame();
-			}
+			self award_permaperk(stat_name, perk_code, stat_value);
 		}
 	}
 
-	wait 0.5;
-	self.songs_awarding_permaperks = undefined;
-	self uploadstatssoon();
+	if (isinarray(perk["maps_take"], level.script) && self.pers_upgrades_awarded[perk_code])
+		self remove_permaperk(perk_code);
 }
 
 award_permaperk(stat_name, perk_code, stat_value)
 {
-	flag_set("permaperks_were_set");
-
+	// debug_print("awarding: " + stat_name + " " + perk_code + " " + stat_value);
 	self.stats_this_frame[stat_name] = 1;
 	self set_global_stat(stat_name, stat_value);
+	self playsoundtoplayer("evt_player_upgrade", self);
+}
+
+remove_permaperk(perk_code)
+{
+	// debug_print("removing: " + perk_code);
+	self.pers_upgrades_awarded[perk_code] = 0;
+	self playsoundtoplayer("evt_player_downgrade", self);
 }
 
 clear_sound_lock()
