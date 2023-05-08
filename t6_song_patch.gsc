@@ -2774,7 +2774,7 @@ mannequin_integrity()
 	debug_print("mannequin_integrity(): detected count: " + detections + " current dvar: " + getDvar("song_attempts"));
 
 	/* Not sure why it should be 29 in this check, but it works so */
-	if (detections != 29)
+	if (detections < 29)
 	{
 		if (!is_debug())
 			level notify("kill_mannequin_tracking");
@@ -2783,12 +2783,19 @@ mannequin_integrity()
 
 		iPrintLn("^1WARNING: ^7Mannequin number incorrect.");
 		iPrintLn("Restart within 5 seconds to not lose an attempt");
+
 		if (getDvar("song_attempts") != "")
 		{
 			num = getDvarInt("song_attempts");
 			setDvar("song_attempts", num - 1);
 			wait 5;
 			setDvar("song_attempts", num + 1);
+		}
+		else
+		{
+			setDvar("song_attempts", -1);
+			wait 5;
+			setDvar("song_attempts", 0);
 		}
 	}
 }
