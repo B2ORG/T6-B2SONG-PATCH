@@ -10,8 +10,8 @@ init()
     precacheshader("waypoint_revive");
 
     level.SONG_TIMING = array();
-    level.SONG_TIMING["version"] = 7.2;
-    level.SONG_TIMING["debug"] = true;
+    level.SONG_TIMING["version"] = 7.3;
+    level.SONG_TIMING["debug"] = false;
     level.SONG_TIMING["hud_right_pos"] = 30;
 	level.SONG_TIMING["tenth_timer_in_use"] = false;
     level.SONG_TIMING["allow_firstbox"] = true;

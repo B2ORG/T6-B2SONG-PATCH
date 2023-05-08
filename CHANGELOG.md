@@ -64,3 +64,6 @@ This bug is caused by the game only generating 27 mannequins on the map. When th
 ## Version 7.3
 
 - Set max bank value to be aligned with the actual value in game (thanks [Huth](https://github.com/HuthTV))
+- .05 accuracy for timing songs and splits has been restored (from .1 accuracy)
+- Created optional `any%` gsc addon, which can be used to alter rules of the game (check README for details)
+- Applied improvements to First Box and Permaperks functions from B2OP

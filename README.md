@@ -1,9 +1,11 @@
-With this patch, forget about having to manually time Black Ops II Zombies Song Speedruns.
+**With this patch, forget about having to manually time Black Ops II Zombies Song Speedruns.**
+
+![Patch example screenshot](https://i.imgur.com/9yKBTUV.jpeg)
 
 # Timing rules
 
-- Start position: As soon as player is given control over his character </br>
-- Finish position: As soon as trigger for the song in quesion is hit </br>
+- Start position: As soon as player is given control over his character
+- Finish position: As soon as trigger for the song in quesion is hit
 
 # Installation
 
@@ -161,8 +163,10 @@ In order to play on built-in any% mode, download additional file `T6-SONG-ANYPER
 
 ## Any% changes
 
-- First zombie is guaranteed to give double points
-- Nuke is guaranteed to be a 2nd drop in the cycle
+- Powerups
+    * First zombie is guaranteed to give double points
+    * Nuke is guaranteed to be a 2nd drop in the cycle
+    * Above changes do not affect Origins dig spots
 - Removed sound lock (when song items cannot be pressed on Origins)
 - Removed OOB safety, players can now go out of bounds
 
