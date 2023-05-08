@@ -781,29 +781,17 @@ first_box_handler()
 {
     level endon("end_game");
 
-    level.is_first_box = false;
+	flag_wait("initial_blackscreen_passed");
 
-	// Init threads watching the status of boxes
-	self thread init_box_status_watcher();
+	// Init thread counting box hits
+	thread init_boxhits_watcher();
 	// Scan weapons in the box
-	self thread scan_in_box();
+	thread scan_in_box();
 	// First Box main loop
-	self thread first_box();
+	thread first_box();
 }
 
-debug_print_initial_boxsize()
-{
-	in_box = 0;
-
-	foreach (weapon in getArrayKeys(level.zombie_weapons))
-	{
-		if (maps\mp\zombies\_zm_weapons::get_is_in_box(weapon))
-			in_box++;
-	}
-	debug_print("Size of initial box weapon list: " + in_box);
-}
-
-init_box_status_watcher()
+init_boxhits_watcher()
 {
     level endon("end_game");
 
@@ -811,7 +799,7 @@ init_box_status_watcher()
 
 	while (!isDefined(level.chests))
 		wait 0.05;
-	
+
 	foreach(chest in level.chests)
 		chest thread watch_box_state();
 }
@@ -837,7 +825,6 @@ scan_in_box()
 {
     level endon("end_game");
 
-	// Only town needed
     if (is_town() || is_farm() || is_depot() || is_tranzit())
         should_be_in_box = 25;
 	else if (is_nuketown())
@@ -877,17 +864,46 @@ scan_in_box()
 
 		level.is_first_box = true;
 		break;
-
     }
-    return;
 }
 
 first_box()
 {	
-    level endon("end_game");
-
 	if (!song_config("allow_firstbox"))
 		return;
+
+	thread box_watch_dvar();
+	if (is_plutonium())
+		thread box_watch_chat();
+}
+
+box_watch_dvar()
+{
+    level endon("end_game");
+	level endon("break_firstbox");
+
+	setDvar("fb", "");
+	while (true)
+	{
+		wait 0.05;
+
+		if (getDvar("fb") == "")
+			continue;
+
+		thread rig_box(getDvar("fb"), level.players[0]);
+		wait_network_frame();
+
+		while (flag("box_rigged"))
+			wait 0.05;
+
+		setDvar("fb", "");
+	}
+}
+
+box_watch_chat()
+{
+    level endon("end_game");
+	level endon("break_firstbox");
 
 	while (true)
 	{
@@ -900,7 +916,7 @@ first_box()
 		else
 			continue;
 
-		self thread rig_box(wpn_key, player);
+		thread rig_box(wpn_key, player);
 		wait_network_frame();
 
 		wpn_key = undefined;
@@ -915,6 +931,9 @@ rig_box(gun, player)
     level endon("end_game");
 
 	weapon_key = get_weapon_key(gun, ::box_weapon_verification);
+	if (isDefined(player))
+		weapon_key = player player_box_weapon_verification(weapon_key);
+
 	if (weapon_key == "")
 	{
 		iPrintLn("Wrong weapon key: ^1" + gun);
@@ -922,7 +941,7 @@ rig_box(gun, player)
 	}
 
 	// weapon_name = level.zombie_weapons[weapon_key].name;
-	iPrintLn("" + player.name + " set box weapon to: ^3", weapon_display_wrapper(weapon_key));
+	iPrintLn(player.name + "^7 set box weapon to: ^3" + weapon_display_wrapper(weapon_key));
 	level.is_first_box = true;
 
 	saved_check = level.special_weapon_magicbox_check;
@@ -930,7 +949,7 @@ rig_box(gun, player)
 	removed_guns = array();
 
 	flag_set("box_rigged");
-	debug_print("FIRST BOX: flag('box_rigged'): " + flag("box_rigged"));
+	// debug_print("FIRST BOX: flag('box_rigged'): " + flag("box_rigged"));
 
 	level.special_weapon_magicbox_check = undefined;
 	foreach(weapon in getarraykeys(level.zombie_weapons))
@@ -939,11 +958,11 @@ rig_box(gun, player)
 		{
 			removed_guns[removed_guns.size] = weapon;
 			level.zombie_weapons[weapon].is_in_box = 0;
-
-			debug_print("FIRST BOX: setting " + weapon + ".is_in_box to 0");
+			// debug_print("FIRST BOX: setting " + weapon + ".is_in_box to 0");
 		}
 	}
 
+	/* Critical loop responsible for restoring proper state */
 	while ((current_box_hits == level.total_box_hits) || !isDefined(level.total_box_hits))
 		wait 0.05;
 	
@@ -951,18 +970,17 @@ rig_box(gun, player)
 
 	level.special_weapon_magicbox_check = saved_check;
 
-	debug_print("FIRST BOX: removed_guns.size " + removed_guns.size);
+	// debug_print("FIRST BOX: removed_guns.size " + removed_guns.size);
 	if (removed_guns.size > 0)
 	{
 		foreach(rweapon in removed_guns)
 		{
 			level.zombie_weapons[rweapon].is_in_box = 1;
-			debug_print("FIRST BOX: setting " + rweapon + ".is_in_box to 1");
+			// debug_print("FIRST BOX: setting " + rweapon + ".is_in_box to 1");
 		}
 	}
 
 	flag_clear("box_rigged");
-	return;
 }
 
 get_weapon_key(weapon_str, verifier)
@@ -1114,6 +1132,12 @@ get_weapon_key(weapon_str, verifier)
 		case "ak74":
 			key = "ak74u_zm";
 			break;
+		case "m14":
+			key = "m14_zm";
+			break;
+		case "svu":
+			key = "svu_zm";
+			break;
 		default:
 			key = weapon_str;
 	}
@@ -1123,7 +1147,7 @@ get_weapon_key(weapon_str, verifier)
 
 	key = [[verifier]](key);
 
-	debug_print("FIRST BOX: weapon_key: " + key);
+	// debug_print("get_weapon_key(): weapon_key: " + key);
 	return key;
 }
 
@@ -1139,9 +1163,29 @@ default_weapon_verification()
 
 box_weapon_verification(weapon_key)
 {
-	if (isDefined(level.zombie_weapons[weapon_key]) && level.zombie_weapons[weapon_key].is_in_box)
-		return weapon_key;
-	return "";
+	if (!is_true(level.zombie_weapons[weapon_key].is_in_box))
+		return "";
+	return weapon_key;
+}
+
+player_box_weapon_verification(weapon_key)
+{
+	if (self has_weapon_or_upgrade(weapon_key))
+		return "";
+	if (!limited_weapon_below_quota(weapon_key, self, getentarray("specialty_weapupgrade", "script_noteworthy")))
+		return "";
+
+	switch (weapon_key)
+	{
+		case "ray_gun_zm":
+			if (self has_weapon_or_upgrade("raygun_mark2_zm"))
+				return "";
+		case "raygun_mark2_zm":
+			if (self has_weapon_or_upgrade("ray_gun_zm"))
+				return "";
+	}
+
+	return weapon_key;
 }
 
 weapon_display_wrapper(weapon_key)

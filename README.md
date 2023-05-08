@@ -101,11 +101,13 @@ Split into 3 main zones, time 2 first zones as splits, splits are hidden until s
 
 # First Box
 
-In order to use First Box, player has to write in game chat (not the game console) as following
+In order to use First Box, player has to set following command in the game console (press `~`)
 
 ```fb <key>```
 
-Key being a short text representing each of the weapons. This will force selected weapon from the box next time the box is hit. Note, you can only select weapon that's available on the map you're playing
+Key being a short text representing each of the weapons. This will force selected weapon from the box next time the box is hit. Note, you can only select weapon that's available on the map you're playing and it otherwise obtainable
+
+If you are playing on New Plutonium, you can also just send a chat message following the same pattern at the command above, it'll work the same way.
 
 ## Weapon keys
 
