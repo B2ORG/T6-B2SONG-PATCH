@@ -7,6 +7,16 @@
 - Start position: As soon as player is given control over his character
 - Finish position: As soon as trigger for the song in quesion is hit
 
+# Categories
+
+This patch is meant to be used during Song Speedrun games. Below you can see alternatives for other categories
+
+| Category| Patch | Creator | Link |
+| --- | --- | --- | --- |
+| First Room | First Room Fix | Zi0 | [GitHub](https://github.com/Zi0MIX/T6-FIRST-ROOM-FIX) |
+| High Rounds / Round Speedruns | B2OP | Zi0 | [GitHub](https://github.com/Zi0MIX/T6-B2OP-PATCH) |
+| EE Speedrun | Easter Egg GSC Timer | HuthTV | [GitHub](https://github.com/HuthTV/BO2-Easter-Egg-GSC-timer) |
+
 # Installation
 
 Installation methodology differs between launchers.
