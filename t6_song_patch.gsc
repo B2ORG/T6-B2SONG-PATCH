@@ -126,6 +126,12 @@ welcome_prints()
 		wait 0.75;
 		iPrintLn("Leaderboard updated on: ^1"+ level.SONG_LEADERBOARD["date"] + " ^7by ^1" + level.SONG_LEADERBOARD["update_by"]);
 	}
+
+	if (level.players.size > 1)
+	{
+		wait 0.75;
+		iPrintLn("^1REMAINDER^7 - Since April 2023 coops require all players POV to be publicly uploaded!");
+	}
 }
 
 is_debug()
