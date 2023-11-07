@@ -47,6 +47,9 @@ song_main()
 	if (has_permaperks_system() && isDefined(level.B2_FRIDGE))
 		thread [[level.B2_FRIDGE]](::player_rig_fridge);
 
+    if (isDefined(level.B2_POWERUP_TRACKING))
+        level thread [[level.B2_POWERUP_TRACKING]]();
+
     if (is_nuketown())
         level thread move_chest();
 
