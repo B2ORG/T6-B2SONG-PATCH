@@ -44,6 +44,9 @@ song_main()
     level thread first_box_handler();
     level thread perma_perks_handler();
 
+	if (has_permaperks_system() && isDefined(level.B2_FRIDGE))
+		thread [[level.B2_FRIDGE]](::player_rig_fridge);
+
     if (is_nuketown())
         level thread move_chest();
 
@@ -3061,4 +3064,35 @@ set_characters()
 		level.has_weasel = prop["has_weasel"];
 	if (isDefined(prop["voice"]))
 		self.voice = prop["voice"];
+}
+
+player_rig_fridge(weapon)
+{
+	self maps\mp\zombies\_zm_stats::clear_stored_weapondata();
+
+	wpn = array();
+	wpn["clip"] = weaponClipSize(weapon);
+	wpn["stock"] = weaponMaxAmmo(weapon);
+	wpn["dw_name"] = weapondualwieldweaponname(weapon);
+	wpn["alt_name"] = weaponaltweaponname(weapon);
+	wpn["lh_clip"] = weaponClipSize(wpn["dw_name"]);
+	wpn["alt_clip"] = weaponClipSize(wpn["alt_name"]);
+	wpn["alt_stock"] = weaponMaxAmmo(wpn["alt_name"]);
+
+	self setdstat("PlayerStatsByMap", "zm_transit", "weaponLocker", "name", weapon);
+	self setdstat("PlayerStatsByMap", "zm_transit", "weaponLocker", "clip", wpn["clip"]);
+	self setdstat("PlayerStatsByMap", "zm_transit", "weaponLocker", "stock", wpn["stock"]);
+
+	if (isDefined(wpn["alt_name"]) && wpn["alt_name"] != "")
+	{
+		self setdstat("PlayerStatsByMap", "zm_transit", "weaponLocker", "alt_name", wpn["alt_name"]);
+		self setdstat("PlayerStatsByMap", "zm_transit", "weaponLocker", "alt_clip", wpn["alt_clip"]);
+		self setdstat("PlayerStatsByMap", "zm_transit", "weaponLocker", "alt_stock", wpn["alt_stock"]);
+	}
+
+	if (isDefined(wpn["dw_name"]) && wpn["dw_name"] != "")
+	{
+		self setdstat("PlayerStatsByMap", "zm_transit", "weaponLocker", "dw_name", wpn["dw_name"]);
+		self setdstat("PlayerStatsByMap", "zm_transit", "weaponLocker", "lh_clip", wpn["lh_clip"]);
+	}
 }
