@@ -13,33 +13,19 @@ This patch is meant to be used during Song Speedrun games. Below you can see alt
 
 | Category| Patch | Creator | Link |
 | --- | --- | --- | --- |
-| First Room | First Room Fix | Zi0 | [GitHub](https://github.com/Zi0MIX/T6-FIRST-ROOM-FIX) |
-| High Rounds / Round Speedruns | B2OP | Zi0 | [GitHub](https://github.com/Zi0MIX/T6-B2OP-PATCH) |
+| First Room | B2FR | Zi0 | [GitHub](https://github.com/B2ORG/T6-B2FR-PATCH) |
+| Highrounds / Round speedruns | B2OP | Zi0 & Astrox | [GitHub](https://github.com/B2ORG/T6-B2OP-PATCH) |
 | EE Speedrun | Easter Egg GSC Timer | HuthTV | [GitHub](https://github.com/HuthTV/BO2-Easter-Egg-GSC-timer) |
 
 # Installation
 
-Installation methodology differs between launchers.
+Download most recent version from [releases](https://github.com/B2ORG/T6-B2SONG-PATCH/releases) section and put the script you downloaded in Plutonium directory (unless you changed it it'll be)
 
-## New Plutonium (Online)
+```C:\Users\{your username}\AppData\Local\Plutonium\storage\t6\scripts\zm```
 
-- Get most recent version of the patch from [releases](https://github.com/Zi0MIX/T6-SONG-TIMER-PATCH/releases) section
-- Put that file in:
-
-```C:\Users\{your username here}\AppData\Local\Plutonium\storage\t6\scripts\zm```
+The appdata directory is hidden by default on windows, in order to access it, press key combination WINDOWS + R on your keyboard and type in `%LOCALAPPDATA%`, press ENTER.
 
 Video installation guide: [YouTube](https://youtu.be/1gUZCMJ3Sjk) by SkimpyChooch (this has been made for older versions of the patch but it's pretty much the same thing)
-
-## Redacted (LAN)
-
-- Download [raw script](https://github.com/Zi0MIX/T6-SONG-TIMER-PATCH/blob/main/t6_song_patch.gsc) (make sure to do it from `main` branch, you can do it by clicking on the hyperlink)
-- Put that file in:
-
-```{path to your redacted folder}\data\scripts```
-
-## Additional info
-
-The reason why compiled script is not going to work with Redacted, is the fact that it's compiled using [xensik's compiler](https://github.com/xensik/gsc-tool), which is superior to old compiler but not supported by either Redacted or Ancient Plutonium (Offline)
 
 Please note, script is not rated or tested for Redacted, use it there at your own risk. I recommend either using most recent version of Plutonium or version [r2905](https://youtu.be/tb2gsL12wwI)
 
@@ -169,7 +155,7 @@ If you are playing on New Plutonium, you can also just send a chat message follo
 
 # Any% category
 
-In order to play on built-in any% mode, download additional file `T6-SONG-ANYPERCENT.gsc` and put it in your patch folder alongside the normal patch. If you wish to restore normal behavior, just remove (or move) the file out of the patch folder and restart the game / perform `map_restart`.
+In order to play on built-in any% mode, download the extension from [extensions respository](https://github.com/B2ORG/T6-B2EXTENSIONS) (will have to be compiled for R2905) and put it in the scripts folder alongside the song patch. If you wish to restore normal behavior, just remove (or move) the file out of the patch folder and restart the game / perform `map_restart`.
 
 ## Any% changes
 
@@ -182,11 +168,11 @@ In order to play on built-in any% mode, download additional file `T6-SONG-ANYPER
 
 # Leaderboards
 
-New in version 7 is a leaderboard module. If file storing leaderboard data is present in your patch folder, Song patch will display current records for the map you're playing. For that to show, you need to download 2nd file that you can find in releases( installation process looks exactly the same as main patch file), this file will be updated every time a record is beaten, but it's up to the player to download the updated file from the releases section.
+New in version 7 is a leaderboard module. If file storing leaderboard data is present in your patch folder, Song patch will display current records for the map you're playing. For the module to work, it needs to be downloaded from [extensions respository](https://github.com/B2ORG/T6-B2EXTENSIONS) and possibly compiled (depending on the Plutonium version). Please note, i do not update the data there anymore, so unless you wish to contribute there and update the values, i'd probably say don't use it.
 
 # Updates
 
-- To see details about updates, visit [changelog](https://github.com/Zi0MIX/T6-SONG-TIMER-PATCH/blob/main/CHANGELOG.md) file.
+- To see details about updates, visit [changelog](https://github.com/B2ORG/T6-B2SONG-PATCH/blob/main/CHANGELOG.md) file.
 - To track development, join [my Discord server](https://discord.gg/fDY4VR6rNE), where details about my current projects are being posted
 - To track releases (for both main updates and leaderboard file updates) join [Official Song Speedrunning Discord Server](https://discord.gg/8ugeuytEAm). Info about releases will also appear on my server, but if you gonna play song speedruns, i recommend being on the dedicated discord server regardless.
 
