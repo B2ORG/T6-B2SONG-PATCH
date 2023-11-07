@@ -129,6 +129,12 @@ welcome_prints()
 	wait 0.75;
 	self iPrintLn("Source: ^1github.com/B2ORG/T6-B2SONG-PATCH");
 
+	if (level.players.size > 1)
+	{
+		wait 0.75;
+		iPrintLn("^1REMINDER^7 - Since April 2023, all coops require all players POV to be publicly uploaded!");
+	}
+
 	if (leaderboards_enabled())
 	{
 		wait 0.75;
