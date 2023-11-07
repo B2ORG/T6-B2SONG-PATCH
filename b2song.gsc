@@ -10,7 +10,7 @@ init()
     precacheshader("waypoint_revive");
 
     level.SONG_TIMING = array();
-    level.SONG_TIMING["version"] = 7.3;
+    level.SONG_TIMING["version"] = 1;
     level.SONG_TIMING["debug"] = false;
     level.SONG_TIMING["hud_right_pos"] = 30;
 	level.SONG_TIMING["tenth_timer_in_use"] = false;
@@ -117,9 +117,9 @@ welcome_prints()
 	level endon("end_game");
 
 	wait 0.75;
-    iPrintLn("Song Auto-Timer ^3V" + song_config("version"));
+	self iPrintLn("B2^1SONG^7 PATCH ^1V" + song_config("version"));
 	wait 0.75;
-    iPrintLn("Source: ^3github.com/Zi0MIX/T6-SONG-TIMER-PATCH");
+	self iPrintLn("Source: ^1github.com/B2ORG/T6-B2SONG-PATCH");
 
 	if (leaderboards_enabled())
 	{
