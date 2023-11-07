@@ -50,7 +50,7 @@ song_main()
 	level thread clear_sound_lock();
 
 	if (is_anypercent())
-		level thread [[level.song_anypercent.powerup_rig]]();
+		level thread [[level.B2_SONG_ANYPERCENT.powerup_rig]]();
 }
 
 song_player()
@@ -78,7 +78,7 @@ player_thread()
     self thread zone_hud();
 	self thread fill_up_bank();
 	if (is_anypercent())
-		self thread [[level.song_anypercent.disable_oob_safety]]();
+		self thread [[level.B2_SONG_ANYPERCENT.disable_oob_safety]]();
 	// if (is_debug())
 	// 	self thread get_my_coordinates();
 }
@@ -124,7 +124,7 @@ welcome_prints()
 	if (leaderboards_enabled())
 	{
 		wait 0.75;
-		iPrintLn("Leaderboard updated on: ^1"+ level.SONG_LEADERBOARD["date"] + " ^7by ^1" + level.SONG_LEADERBOARD["update_by"]);
+		iPrintLn("Leaderboard updated on: ^1"+ level.B2_SONG_LEADERBOARD["date"] + " ^7by ^1" + level.B2_SONG_LEADERBOARD["update_by"]);
 	}
 }
 
@@ -137,7 +137,7 @@ is_debug()
 
 leaderboards_enabled()
 {
-	if (song_config("leaderboards_enabled") && isDefined(level.SONG_LEADERBOARD))
+	if (song_config("leaderboards_enabled") && isDefined(level.B2_SONG_LEADERBOARD))
 		return true;
 	return false;
 }
@@ -284,7 +284,7 @@ set_dvars()
 
 is_anypercent()
 {
-	if (isDefined(level.song_anypercent) && level.song_anypercent.enabled)
+	if (isDefined(level.B2_SONG_ANYPERCENT) && level.B2_SONG_ANYPERCENT.enabled)
 		return true;
 	return false;
 }
@@ -2165,8 +2165,8 @@ show_wr(index)
 	posy = 40 + (40 * level.printed_wrs);
 	str_playersize = "" + get_players().size;
 
-	time = level.SONG_LEADERBOARD[self.code][str_playersize]["wr"];
-	players = level.SONG_LEADERBOARD[self.code][str_playersize]["player"];
+	time = level.B2_SONG_LEADERBOARD[self.code][str_playersize]["wr"];
+	players = level.B2_SONG_LEADERBOARD[self.code][str_playersize]["player"];
 
 	// debug_print("show_wr(" + index + "): are defined time='" + isDefined(time) + "' players='" + isDefined(players) + "' playerindex-isstring='" + (isDefined(str_playersize) && isstring(str_playersize)) + "'");
 	// debug_print("show_wr(" + index + "): time='" + time + "' players='" + players + "'");
