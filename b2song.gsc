@@ -754,41 +754,21 @@ get_time_element(value, step)
 
 number_as_string(num, upper)
 {
-	switch (num)
-	{
-		case "0":
-		case 0:
-			if (upper)
-				return "ZERO";
-			return "zero";
-		case "1":
-		case 1:
-			if (upper)
-				return "FIRST";
-			return "first";
-		case "2":
-		case 2:
-			if (upper)
-				return "SECOND";
-			return "second";
-		case "3":
-		case 3:
-			if (upper)
-				return "THIRD";
-			return "third";
-		case "4":
-		case 4:
-			if (upper)
-				return "FOURTH";
-			return "fourth";
-		case "5":
-		case 5:
-			if (upper)
-				return "FIFTH";
-			return "fifth";
-		default:
-			return num;
-	}
+	number_table = array();
+	number_table[0] = "ZERO";
+	number_table[1] = "FIRST";
+	number_table[2] = "SECOND";
+	number_table[3] = "THIRD";
+	number_table[4] = "FOURTH";
+	number_table[5] = "FIFTH";
+
+	str = number_table[int(num)];
+	if (!isDefined(str))
+		return "";
+	
+	if (!upper)
+		return toLower(str);
+	return str;
 }
 
 first_box_handler()
