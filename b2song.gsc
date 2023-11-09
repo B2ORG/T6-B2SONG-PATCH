@@ -33,6 +33,9 @@ song_main()
 	level endon("end_game");
 
 	level waittill("initial_players_connected");
+
+	if (is_town() || is_farm() || is_depot())
+		bad_map();
 	thread welcome_prints();
 
     flag_wait("initial_blackscreen_passed");
@@ -118,6 +121,14 @@ debug_print(text)
 {
     if (is_debug())
         print("DEBUG: " + text);
+}
+
+bad_map()
+{
+	wait 0.75;
+	iPrintLn("^1MAP NOT SUPPORTED!");
+	wait 0.75;
+	level notify("end_game");
 }
 
 welcome_prints()
