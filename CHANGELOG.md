@@ -4,6 +4,8 @@
 
 - Integration with B2 ecosystem (that includes extensions)
 - Added reminder about multi-pov requirement to coop games
+- Game automatically ends on maps without songs
+- Addressed a compile error that prevented the patch from compiling on newer versions of gsc-tool
 
 # Changelog Song Timing Patch
 
