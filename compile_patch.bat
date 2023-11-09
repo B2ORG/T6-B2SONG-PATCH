@@ -1,1 +1,1 @@
-gsc-tool.exe comp T6 pc "t6_song_patch.gsc"
+gsc-tool.exe comp T6 pc "b2song.gsc"
