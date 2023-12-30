@@ -1,5 +1,9 @@
 # Changelog B2SONG
 
+## Version 1.1
+
+- Fixed velocity value if player is moving diagonally (thanks [JBleezy](https://github.com/Jbleezy))
+
 ## Version 1
 
 - Integration with B2 ecosystem (that includes extensions)
