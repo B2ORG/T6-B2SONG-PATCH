@@ -3,6 +3,7 @@
 ## Version 1.1
 
 - Fixed velocity value if player is moving diagonally (thanks [JBleezy](https://github.com/Jbleezy))
+- Added `scr_skip_devblock` dvar to mitigate dev prints problem in Pluto R3904
 
 ## Version 1
 

@@ -305,6 +305,7 @@ set_dvars()
     setdvar("player_strafespeedscale", 1);
     setdvar("player_backspeedscale", 0.9);
     setdvar("g_speed", 190);
+    setdvar("scr_skip_devblock", 1);
 }
 
 is_anypercent()
