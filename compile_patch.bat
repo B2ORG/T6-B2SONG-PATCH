@@ -1,1 +1,1 @@
-gsc-tool.exe comp T6 pc "b2song.gsc"
+gsc-tool.exe -m comp -g T6 -s pc "b2song.gsc"
