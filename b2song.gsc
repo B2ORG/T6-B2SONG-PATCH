@@ -10,7 +10,7 @@ init()
     precacheshader("waypoint_revive");
 
     level.SONG_TIMING = array();
-    level.SONG_TIMING["version"] = 1;
+    level.SONG_TIMING["version"] = 1.1;
     level.SONG_TIMING["debug"] = false;
     level.SONG_TIMING["hud_right_pos"] = 30;
 	level.SONG_TIMING["tenth_timer_in_use"] = false;
