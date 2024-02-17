@@ -17,17 +17,19 @@ This patch is meant to be used during Song Speedrun games. Below you can see alt
 | Highrounds / Round speedruns | B2OP | Zi0 & Astrox | [GitHub](https://github.com/B2ORG/T6-B2OP-PATCH) |
 | EE Speedrun | Easter Egg GSC Timer | HuthTV | [GitHub](https://github.com/HuthTV/BO2-Easter-Egg-GSC-timer) |
 
+Additionally there exists [Black Ops 1 version](https://github.com/Zi0MIX/T5-SONG-TIMER-MOD/releases) of this patch (no longer maintained)
+
 # Installation
 
-Download most recent version from [releases](https://github.com/B2ORG/T6-B2SONG-PATCH/releases) section and put the script you downloaded in Plutonium directory (unless you changed it it'll be)
+The patch is meant to be used with modern versions of Plutonium [Plutonium installation guide](https://youtu.be/_8QjvejOuqU). Download the `b2song.gsc` script from [releases](https://github.com/B2ORG/T6-B2SONG-PATCH/releases) section, and put it in Plutonium scripts/zm directory, by default it's in
 
-```C:\Users\{your username}\AppData\Local\Plutonium\storage\t6\scripts\zm```
+```
+%LOCALAPPDATA%\Plutonium\storage\t6\scripts\zm
+```
 
-The appdata directory is hidden by default on windows, in order to access it, press key combination WINDOWS + R on your keyboard and type in `%LOCALAPPDATA%`, press ENTER.
+Run this in a run window (press CTRL + R), that'll open the Plutonium scripts folder. If your plutonium folder is called differently (for example `Plutonium R2905` instead of `Plutonium`, adjust the path)
 
-Video installation guide: [YouTube](https://youtu.be/1gUZCMJ3Sjk) by SkimpyChooch (this has been made for older versions of the patch but it's pretty much the same thing)
-
-Please note, script is not rated or tested for Redacted, use it there at your own risk. I recommend either using most recent version of Plutonium or version [r2905](https://youtu.be/tb2gsL12wwI)
+Patch video installation guide: [YouTube](https://youtu.be/1gUZCMJ3Sjk) by SkimpyChooch (this has been made for older versions of the patch but it's pretty much the same thing)
 
 # Changes
 
@@ -101,7 +103,9 @@ Split into 3 main zones, time 2 first zones as splits, splits are hidden until s
 
 In order to use First Box, player has to set following command in the game console (press `~`)
 
-```fb <key>```
+```
+fb <key>
+```
 
 Key being a short text representing each of the weapons. This will force selected weapon from the box next time the box is hit. Note, you can only select weapon that's available on the map you're playing and it otherwise obtainable
 
@@ -168,7 +172,8 @@ In order to play on built-in any% mode, download the extension from [extensions 
 
 # Leaderboards
 
-New in version 7 is a leaderboard module. If file storing leaderboard data is present in your patch folder, Song patch will display current records for the map you're playing. For the module to work, it needs to be downloaded from [extensions respository](https://github.com/B2ORG/T6-B2EXTENSIONS) and possibly compiled (depending on the Plutonium version). Please note, i do not update the data there anymore, so unless you wish to contribute there and update the values, i'd probably say don't use it.
+New in version 7 is a leaderboard module. If file storing leaderboard data is present in your patch folder, Song patch will display current records for the map you're playing. For the module to work, it needs to be downloaded from [extensions respository](https://github.com/B2ORG/T6-B2EXTENSIONS) and possibly compiled (depending on the Plutonium version). 
+*Please note, i do not update the data there anymore, so unless you wish to contribute there and update the values, i'd probably say don't use it.*
 
 # Updates
 
@@ -178,4 +183,4 @@ New in version 7 is a leaderboard module. If file storing leaderboard data is pr
 
 # Contribution
 
-You can contribute to this project either passively, by reporting bugs, feature requests, new records (for leaderboard), or actively, by forking this repository to your own GitHub and opening a pull request with changes. Please do note, changes you add must align with Song Speedrunning ruleset, and also not break current features.
+You can contribute to this project either passively, by reporting bugs, feature requests, new records (for leaderboard), or actively, by forking this repository to your own GitHub and opening a pull request with changes (you will need [gsc-tool](https://github.com/xensik/gsc-tool) version 1.4 or higher to be able to compile the patch). Please do note, changes you add must align with Song Speedrunning ruleset, and also not break current features.
